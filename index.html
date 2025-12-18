@@ -10,11 +10,10 @@
         :root { --primary: #1d3557; --secondary: #457b9d; }
         body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 10px; }
         
-        /* Área que será o PDF */
         #pdf-content { background: white; width: 210mm; min-height: 297mm; margin: auto; padding: 15mm; box-sizing: border-box; }
         
         .header { display: flex; align-items: center; border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px; }
-        .logo { width: 120px; margin-right: 20px; }
+        .logo { width: 150px; margin-right: 20px; }
         .empresa-info { font-size: 11px; flex-grow: 1; line-height: 1.4; color: #333; }
         .doc-title { text-align: right; color: var(--primary); font-weight: bold; font-size: 18px; }
 
@@ -23,30 +22,23 @@
         .full { grid-column: span 2; }
         
         label { display: block; font-size: 11px; font-weight: bold; color: var(--primary); margin-bottom: 3px; }
-        
-        /* Campos que viram texto no PDF */
-        input, select, textarea { 
-            width: 100%; border: 1px solid #ccc; padding: 10px; font-size: 14px; border-radius: 4px; 
-            box-sizing: border-box; background: #fff; font-family: inherit;
-        }
+        input, select, textarea { width: 100%; border: 1px solid #ccc; padding: 10px; font-size: 14px; border-radius: 4px; box-sizing: border-box; background: #fff; font-family: inherit; }
 
-        /* Registro Fotográfico - Grid Rígido para PDF */
+        /* Registro Fotográfico Dinâmico */
         #preview-container { 
             display: grid; 
             grid-template-columns: 1fr 1fr; 
-            grid-template-rows: repeat(3, 200px); 
-            gap: 15px; 
+            gap: 10px; 
             margin-top: 15px; 
         }
-        .photo-box { border: 1px solid #ddd; width: 100%; height: 200px; display: flex; overflow: hidden; border-radius: 4px; background: #f9f9f9; }
+        .photo-box { border: 1px solid #ddd; height: 220px; display: flex; overflow: hidden; border-radius: 4px; background: #f9f9f9; page-break-inside: avoid; }
         .photo-box img { width: 100%; height: 100%; object-fit: cover; }
 
-        .signature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px; text-align: center; }
+        .signature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px; text-align: center; page-break-inside: avoid; }
         .sig-wrapper { border-bottom: 1px solid #000; margin-bottom: 5px; }
         canvas { width: 100%; height: 120px; background: #fafafa; border: 1px dashed #ccc; }
         .sig-label { font-size: 12px; color: #222; line-height: 1.4; }
 
-        /* Controles flutuantes */
         .no-print-area { max-width: 210mm; margin: 20px auto; background: #fff; padding: 20px; border-radius: 8px; border: 2px solid var(--secondary); }
         .controls { position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px; z-index: 9999; }
         button { padding: 15px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
@@ -57,7 +49,7 @@
 <body>
 
 <div class="no-print-area">
-    <h3 style="margin-top:0; color: var(--primary);">🛠️ Gestão de Obras</h3>
+    <h3 style="margin-top:0; color: var(--primary);">🛠️ Gestão de Obras (ForAll)</h3>
     <div class="grid">
         <input type="text" id="cadObra" placeholder="Apelido da Obra">
         <input type="text" id="cadContrato" placeholder="Nº Contrato">
@@ -71,11 +63,11 @@
 
 <div id="pdf-content">
     <div class="header">
-        <img src="https://forallengenharia.com.br/images/logo_original.svg" class="logo">
+        <img src="https://www.forallengenharia.com.br/wp-content/uploads/2022/07/logo-forall.png" class="logo">
         <div class="empresa-info">
-            <strong>FORALL ENGENHARIA ME</strong><br>
+            <strong>FORALL ENGENHARIA</strong><br>
             CNPJ 47.418.779/0001-23<br>
-            Holambra e região<br>
+            Holambra e região - SP<br>
             (19) 99624-3591 | contato@forallengenharia.com.br
         </div>
         <div class="doc-title">DIÁRIO DE OBRA</div>
@@ -84,7 +76,7 @@
     <div class="section-title">Dados do Contrato</div>
     <div class="grid">
         <div class="full">
-            <label>Selecione a Obra Cadastrada:</label>
+            <label>Obra Selecionada:</label>
             <select id="seletorObra" onchange="carregarDadosObra(this.value)">
                 <option value="">-- Escolha --</option>
             </select>
@@ -110,12 +102,12 @@
     </div>
 
     <div class="section-title">Registro Fotográfico</div>
-    <input type="file" id="fotos" accept="image/*" multiple onchange="previewImages()" style="margin: 15px 0;">
-    <div id="preview-container">
-        <div class="photo-box"></div><div class="photo-box"></div>
-        <div class="photo-box"></div><div class="photo-box"></div>
-        <div class="photo-box"></div><div class="photo-box"></div>
+    <div style="padding: 10px 0;" class="no-print-element">
+        <label>Selecionar Fotos (sem limite):</label>
+        <input type="file" id="fotos" accept="image/*" multiple onchange="previewImages()">
     </div>
+    <div id="preview-container">
+        </div>
 
     <div class="signature-grid">
         <div>
@@ -133,7 +125,7 @@
 </div>
 
 <div class="controls">
-    <button class="btn-reset" onclick="window.location.reload()">Limpar</button>
+    <button class="btn-reset" onclick="window.location.reload()">Limpar Tudo</button>
     <button class="btn-pdf" onclick="gerarPDF()">Gerar PDF</button>
 </div>
 
@@ -177,14 +169,17 @@
     }
 
     function previewImages() {
-        const boxes = document.querySelectorAll('.photo-box');
+        const container = document.getElementById('preview-container');
         const files = document.getElementById('fotos').files;
-        boxes.forEach(box => box.innerHTML = ''); // Limpa
+        container.innerHTML = ''; // Limpa antes de adicionar
         
-        Array.from(files).slice(0,6).forEach((file, i) => {
+        Array.from(files).forEach((file) => {
             const reader = new FileReader();
             reader.onload = e => {
-                boxes[i].innerHTML = `<img src="${e.target.result}">`;
+                const div = document.createElement('div');
+                div.className = 'photo-box';
+                div.innerHTML = `<img src="${e.target.result}">`;
+                container.appendChild(div);
             };
             reader.readAsDataURL(file);
         });
@@ -193,26 +188,28 @@
     async function gerarPDF() {
         const element = document.getElementById('pdf-content');
         
-        // Esconde o botão de upload e seletor de obra para o PDF
-        document.getElementById('fotos').style.display = 'none';
-        document.getElementById('seletorObra').parentElement.style.display = 'none';
+        // Ocultar elementos desnecessários para o PDF
+        const uploadInput = document.querySelector('.no-print-element');
+        const seletorWrapper = document.getElementById('seletorObra').parentElement;
+        
+        uploadInput.style.display = 'none';
+        seletorWrapper.style.display = 'none';
 
         const opt = {
-            margin: 0,
-            filename: `RDO_ForAll.pdf`,
+            margin: [10, 0, 10, 0], // Margem superior e inferior para evitar cortes
+            filename: `RDO_ForAll_${document.getElementById('rdoObjeto').value || 'Obra'}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { 
                 scale: 2, 
-                useCORS: true, 
-                letterRendering: true,
-                scrollY: -window.scrollY // Corrige problema de corte se a página estiver com scroll
+                useCORS: true,
+                scrollY: -window.scrollY 
             },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
         html2pdf().set(opt).from(element).save().then(() => {
-            document.getElementById('fotos').style.display = 'block';
-            document.getElementById('seletorObra').parentElement.style.display = 'block';
+            uploadInput.style.display = 'block';
+            seletorWrapper.style.display = 'block';
         });
     }
 
