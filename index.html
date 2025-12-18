@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema RDO - ForAll Engenharia</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <style>
+        :root { --primary: #1d3557; --secondary: #457b9d; }
+        body { font-family: Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 10px; }
+        .page { background: white; max-width: 850px; margin: auto; padding: 30px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        
+        /* Cabeçalho */
+        .header { display: flex; align-items: center; border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px; }
+        .logo { width: 100px; margin-right: 15px; }
+        .empresa-info { font-size: 10px; flex-grow: 1; }
+        .doc-title { text-align: right; color: var(--primary); font-weight: bold; }
+
+        /* Gestão de Obras */
+        .admin-section { background: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ccc; }
+        .admin-section h3 { margin-top: 0; font-size: 14px; color: var(--primary); }
+
+        /* Formulário */
+        .section-title { background: var(--primary); color: white; padding: 5px 10px; font-size: 13px; margin-top: 15px; text-transform: uppercase; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+        .full { grid-column: span 2; }
+        label { display: block; font-size: 11px; font-weight: bold; margin-bottom: 2px; }
+        input, select, textarea { width: 100%; border: 1px solid #ccc; padding: 8px; font-size: 13px; border-radius: 4px; box-sizing: border-box; }
+
+        /* Grid de Fotos 2x3 */
+        #preview-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .photo-box { border: 1px solid #eee; height: 180px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #fafafa; border-radius: 4px; }
+        .photo-box img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Assinaturas */
+        .signature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; text-align: center; }
+        canvas { border: 1px solid #ddd; background: #fcfcfc; width: 100%; height: 120px; touch-action: none; border-radius: 4px; }
+        .sig-label { font-size: 11px; margin-top: 5px; border-top: 1px solid #333; padding-top: 5px; }
+
+        .no-print { margin-top: 20px; display: flex; gap: 10px; position: sticky; bottom: 10px; background: rgba(255,255,255,0.9); padding: 10px; border-radius: 8px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .btn-add { background: var(--secondary); color: white; margin-top: 5px; }
+        .btn-pdf { background: #27ae60; color: white; }
+        .btn-clear { background: #e74c3c; color: white; }
+        
+        @media print { .no-print, .admin-section, #fotos { display: none !important; } }
+    </style>
+</head>
+<body>
+
+<div class="no-print admin-section">
+    <div>
+        <h3>Gerenciar Obras</h3>
+        <div class="grid">
+            <input type="text" id="cadObra" placeholder="Nome da Obra">
+            <input type="text" id="cadContrato" placeholder="Nº Contrato">
+            <input type="text" id="cadEmpresa" placeholder="Empresa Contratada">
+            <input type="text" id="cadObjeto" placeholder="Objeto/Obra">
+            <input type="date" id="cadInicio" title="Data Início">
+            <input type="date" id="cadTermino" title="Previsão Término">
+        </div>
+        <button class="btn-add" onclick="salvarNovaObra()">+ Cadastrar Obra</button>
+    </div>
+</div>
+
+<div class="page" id="relatorio">
+    <div class="header">
+        <img src="https://forallengenharia.com.br/images/logo_original.svg" alt="Logo" class="logo">
+        <div class="empresa-info">
+            <strong>FORALL ENGENHARIA</strong><br>
+            CNPJ 47.418.779/0001-23 | (19) 99624-3591<br>
+            Rua Floriano Peixoto, 465, Centro - Artur Nogueira/SP
+        </div>
+        <div class="doc-title">RELATÓRIO DIÁRIO DE OBRA (RDO)</div>
+    </div>
+
+    <div class="section-title">Dados do Contrato e Obra</div>
+    <div class="grid">
+        <div class="full">
+            <label>Selecionar Obra Cadastrada:</label>
+            <select id="seletorObra" onchange="carregarDadosObra(this.value)" class="no-print">
+                <option value="">-- Selecione --</option>
+            </select>
+        </div>
+        <div class="full"><label>Objeto/Obra:</label><input type="text" id="rdoObjeto"></div>
+        <div><label>Nº Contrato:</label><input type="text" id="rdoContrato"></div>
+        <div><label>Empresa Contratada:</label><input type="text" id="rdoEmpresa"></div>
+        <div><label>Data Início:</label><input type="text" id="rdoInicio"></div>
+        <div><label>Previsão Término:</label><input type="text" id="rdoTermino"></div>
+    </div>
+
+    <div class="section-title">Informações da Visita</div>
+    <div class="grid">
+        <div><label>Data da Visita:</label><input type="date" id="dataAtual"></div>
+        <div><label>Clima:</label>
+            <select id="clima">
+                <option>Ensolarado</option><option>Nublado</option><option>Chuvoso</option>
+            </select>
+        </div>
+        <div><label>Nº Funcionários:</label><input type="number" id="efetivo"></div>
+        <div class="full"><label>Atividades Executadas:</label><textarea id="atividades" rows="4"></textarea></div>
+        <div class="full"><label>Observações Técnicas:</label><textarea id="obs" rows="3"></textarea></div>
+    </div>
+
+    <div class="section-title">Registro Fotográfico (Máx 6 fotos)</div>
+    <input type="file" id="fotos" accept="image/*" multiple onchange="previewImages()" class="no-print">
+    <div id="preview-container"></div>
+
+    <div class="signature-grid">
+        <div>
+            <canvas id="sig-proponente"></canvas>
+            <div class="sig-label">Assinatura do Proponente / Fiscalização</div>
+        </div>
+        <div>
+            <canvas id="sig-germano"></canvas>
+            <div class="sig-label">
+                <strong>Germano Jorge Francisco</strong><br>
+                Eng. Civil | CREA-SP 506.968.487-8
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="no-print">
+    <button class="btn-clear" onclick="limparTudo()">Limpar Tudo</button>
+    <button class="btn-pdf" onclick="gerarPDF()">Gerar PDF Final</button>
+</div>
+
+<script>
+    let obras = JSON.parse(localStorage.getItem('obras_forall')) || [];
+    const padProp = new SignaturePad(document.getElementById('sig-proponente'));
+    const padGerm = new SignaturePad(document.getElementById('sig-germano'));
+
+    function salvarNovaObra() {
+        const nova = {
+            id: Date.now(),
+            nome: document.getElementById('cadObra').value,
+            contrato: document.getElementById('cadContrato').value,
+            empresa: document.getElementById('cadEmpresa').value,
+            objeto: document.getElementById('cadObjeto').value,
+            inicio: document.getElementById('cadInicio').value,
+            termino: document.getElementById('cadTermino').value
+        };
+        obras.push(nova);
+        localStorage.setItem('obras_forall', JSON.stringify(obras));
+        atualizarSeletor();
+        alert("Obra cadastrada com sucesso!");
+    }
+
+    function atualizarSeletor() {
+        const select = document.getElementById('seletorObra');
+        select.innerHTML = '<option value="">-- Selecione uma Obra --</option>';
+        obras.forEach(o => {
+            select.innerHTML += `<option value="${o.id}">${o.nome}</option>`;
+        });
+    }
+
+    function carregarDadosObra(id) {
+        const o = obras.find(obra => obra.id == id);
+        if(o) {
+            document.getElementById('rdoObjeto').value = o.objeto;
+            document.getElementById('rdoContrato').value = o.contrato;
+            document.getElementById('rdoEmpresa').value = o.empresa;
+            document.getElementById('rdoInicio').value = o.inicio;
+            document.getElementById('rdoTermino').value = o.termino;
+        }
+    }
+
+    function previewImages() {
+        const container = document.getElementById('preview-container');
+        container.innerHTML = '';
+        Array.from(document.getElementById('fotos').files).slice(0,6).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const div = document.createElement('div');
+                div.className = 'photo-box';
+                div.innerHTML = `<img src="${e.target.result}">`;
+                container.appendChild(div);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function gerarPDF() {
+        const element = document.getElementById('relatorio');
+        const opt = {
+            margin: 5,
+            filename: `RDO_ForAll_${document.getElementById('dataAtual').value}.pdf`,
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    }
+
+    function limparTudo() { if(confirm("Limpar relatório?")) location.reload(); }
+    
+    document.getElementById('dataAtual').valueAsDate = new Date();
+    atualizarSeletor();
+</script>
+
+</body>
+</html>
