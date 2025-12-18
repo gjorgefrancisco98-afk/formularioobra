@@ -3,94 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema RDO - ForAll Engenharia</title>
+    <title>RDO Profissional - ForAll Engenharia</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     <style>
         :root { --primary: #1d3557; --secondary: #457b9d; }
+        body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 10px; }
         
-        /* Configurações Gerais */
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 10px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .page { background: white; max-width: 800px; margin: auto; padding: 25px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        /* Área que será o PDF */
+        #pdf-content { background: white; width: 210mm; min-height: 297mm; margin: auto; padding: 15mm; box-sizing: border-box; }
         
-        /* Cabeçalho */
-        .header { display: flex; align-items: center; border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 15px; }
-        .logo { width: 100px; margin-right: 15px; }
-        .empresa-info { font-size: 10px; flex-grow: 1; color: #333; line-height: 1.4; }
-        .doc-title { text-align: right; color: var(--primary); font-weight: bold; font-size: 16px; }
+        .header { display: flex; align-items: center; border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px; }
+        .logo { width: 120px; margin-right: 20px; }
+        .empresa-info { font-size: 11px; flex-grow: 1; line-height: 1.4; color: #333; }
+        .doc-title { text-align: right; color: var(--primary); font-weight: bold; font-size: 18px; }
 
-        /* Estilo das Seções */
-        .section-title { background: var(--primary) !important; color: white !important; padding: 6px 10px; font-size: 12px; margin-top: 15px; text-transform: uppercase; border-radius: 2px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+        .section-title { background: var(--primary); color: white; padding: 8px 12px; font-size: 13px; margin-top: 20px; text-transform: uppercase; font-weight: bold; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
         .full { grid-column: span 2; }
         
-        label { display: block; font-size: 10px; font-weight: bold; margin-bottom: 2px; color: var(--primary); }
+        label { display: block; font-size: 11px; font-weight: bold; color: var(--primary); margin-bottom: 3px; }
+        
+        /* Campos que viram texto no PDF */
         input, select, textarea { 
-            width: 100%; border: 1px solid #ccc; padding: 8px; font-size: 13px; border-radius: 4px; 
+            width: 100%; border: 1px solid #ccc; padding: 10px; font-size: 14px; border-radius: 4px; 
             box-sizing: border-box; background: #fff; font-family: inherit;
         }
 
-        /* Registro Fotográfico 2x3 */
-        #preview-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .photo-box { border: 1px solid #eee; height: 210px; display: flex; align-items: center; justify-content: center; background: #fafafa; border-radius: 4px; page-break-inside: avoid; }
+        /* Registro Fotográfico - Grid Rígido para PDF */
+        #preview-container { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            grid-template-rows: repeat(3, 200px); 
+            gap: 15px; 
+            margin-top: 15px; 
+        }
+        .photo-box { border: 1px solid #ddd; width: 100%; height: 200px; display: flex; overflow: hidden; border-radius: 4px; background: #f9f9f9; }
         .photo-box img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Assinaturas */
-        .signature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 25px; text-align: center; }
-        canvas { border: 1px solid #ddd; background: #fff; width: 100%; height: 110px; touch-action: none; border-radius: 4px; }
-        .sig-label { font-size: 10px; margin-top: 5px; border-top: 1px solid #333; padding-top: 5px; color: #222; }
+        .signature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px; text-align: center; }
+        .sig-wrapper { border-bottom: 1px solid #000; margin-bottom: 5px; }
+        canvas { width: 100%; height: 120px; background: #fafafa; border: 1px dashed #ccc; }
+        .sig-label { font-size: 12px; color: #222; line-height: 1.4; }
 
-        /* Botões Flutuantes (Não saem no PDF) */
-        .no-print { display: flex; gap: 10px; margin: 20px auto; max-width: 800px; padding: 0 10px; }
-        .admin-section { background: #e9ecef; padding: 15px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 20px; }
-        button { flex: 1; padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-add { background: var(--secondary); color: white; margin-top: 10px; }
-        .btn-pdf { background: #27ae60; color: white; font-size: 16px; }
-        .btn-clear { background: #e74c3c; color: white; }
-
-        /* AJUSTES PARA O PDF/IMPRESSÃO */
-        @media print {
-            body { background: white; padding: 0; }
-            .page { box-shadow: none; border: none; width: 100%; max-width: 100%; padding: 0; }
-            .no-print, .admin-section, button, #fotos { display: none !important; }
-            input, textarea, select { border: 1px solid #eee !important; background: transparent !important; appearance: none; -webkit-appearance: none; }
-            .section-title { -webkit-print-color-adjust: exact; }
-            .photo-box { height: 180px; } /* Ajuste leve para caber melhor no papel */
-        }
+        /* Controles flutuantes */
+        .no-print-area { max-width: 210mm; margin: 20px auto; background: #fff; padding: 20px; border-radius: 8px; border: 2px solid var(--secondary); }
+        .controls { position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px; z-index: 9999; }
+        button { padding: 15px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .btn-pdf { background: #27ae60; color: white; }
+        .btn-reset { background: #e74c3c; color: white; }
     </style>
 </head>
 <body>
 
-<div class="no-print admin-section">
-    <h3>⚙️ Gestão de Obras (ForAll)</h3>
+<div class="no-print-area">
+    <h3 style="margin-top:0; color: var(--primary);">🛠️ Gestão de Obras</h3>
     <div class="grid">
-        <input type="text" id="cadObra" placeholder="Nome da Obra (Apelido)">
+        <input type="text" id="cadObra" placeholder="Apelido da Obra">
         <input type="text" id="cadContrato" placeholder="Nº Contrato">
         <input type="text" id="cadEmpresa" placeholder="Empresa Contratada">
         <input type="text" id="cadObjeto" placeholder="Objeto Completo">
-        <input type="date" id="cadInicio" title="Data Início">
-        <input type="date" id="cadTermino" title="Previsão Término">
+        <input type="date" id="cadInicio">
+        <input type="date" id="cadTermino">
     </div>
-    <button class="btn-add" onclick="salvarNovaObra()">+ Cadastrar Obra na Memória</button>
+    <button style="background: var(--secondary); color: white; width: 100%; margin-top: 10px;" onclick="salvarNovaObra()">+ Cadastrar Obra</button>
 </div>
 
-<div class="page" id="relatorio">
+<div id="pdf-content">
     <div class="header">
-        <img src="https://www.forallengenharia.com.br/wp-content/uploads/2022/07/logo-forall.png" alt="Logo" class="logo">
+        <img src="https://forallengenharia.com.br/images/logo_original.svg" class="logo">
         <div class="empresa-info">
-            <strong>FORALL ENGENHARIA LTDA</strong><br>
-            CNPJ 47.418.779/0001-23 | (19) 99624-3591<br>
-            Artur Nogueira/SP | contato@forallengenharia.com.br
+            <strong>FORALL ENGENHARIA ME</strong><br>
+            CNPJ 47.418.779/0001-23<br>
+            Holambra e região<br>
+            (19) 99624-3591 | contato@forallengenharia.com.br
         </div>
-        <div class="doc-title">RELATÓRIO DIÁRIO DE OBRA</div>
+        <div class="doc-title">DIÁRIO DE OBRA</div>
     </div>
 
     <div class="section-title">Dados do Contrato</div>
     <div class="grid">
-        <div class="full no-print">
-            <label>Carregar Obra:</label>
+        <div class="full">
+            <label>Selecione a Obra Cadastrada:</label>
             <select id="seletorObra" onchange="carregarDadosObra(this.value)">
-                <option value="">-- Selecione uma obra --</option>
+                <option value="">-- Escolha --</option>
             </select>
         </div>
         <div class="full"><label>Objeto/Obra:</label><input type="text" id="rdoObjeto"></div>
@@ -100,30 +96,34 @@
         <div><label>Previsão Término:</label><input type="text" id="rdoTermino"></div>
     </div>
 
-    <div class="section-title">Informações da Visita</div>
+    <div class="section-title">Relatório de Campo</div>
     <div class="grid">
         <div><label>Data da Visita:</label><input type="date" id="dataAtual"></div>
         <div><label>Condição Climática:</label>
             <select id="clima">
-                <option>Ensolarado</option><option>Nublado</option><option>Chuvoso</option>
+                <option>Ensolarado</option><option>Nublado</option><option>Chuvoso (Trabalhável)</option><option>Chuvoso (Interrompido)</option>
             </select>
         </div>
-        <div><label>Nº Funcionários:</label><input type="number" id="efetivo"></div>
-        <div class="full"><label>Atividades Executadas:</label><textarea id="atividades" rows="4"></textarea></div>
+        <div><label>Efetivo (Funcionários):</label><input type="number" id="efetivo"></div>
+        <div class="full"><label>Atividades em Execução:</label><textarea id="atividades" rows="4"></textarea></div>
         <div class="full"><label>Observações Técnicas:</label><textarea id="obs" rows="3"></textarea></div>
     </div>
 
     <div class="section-title">Registro Fotográfico</div>
-    <div class="no-print"><input type="file" id="fotos" accept="image/*" multiple onchange="previewImages()" style="margin: 10px 0;"></div>
-    <div id="preview-container"></div>
+    <input type="file" id="fotos" accept="image/*" multiple onchange="previewImages()" style="margin: 15px 0;">
+    <div id="preview-container">
+        <div class="photo-box"></div><div class="photo-box"></div>
+        <div class="photo-box"></div><div class="photo-box"></div>
+        <div class="photo-box"></div><div class="photo-box"></div>
+    </div>
 
     <div class="signature-grid">
         <div>
-            <canvas id="sig-proponente"></canvas>
-            <div class="sig-label">Assinatura do Proponente / Fiscalização</div>
+            <div class="sig-wrapper"><canvas id="sig-proponente"></canvas></div>
+            <div class="sig-label">Fiscalização / Proponente</div>
         </div>
         <div>
-            <canvas id="sig-germano"></canvas>
+            <div class="sig-wrapper"><canvas id="sig-germano"></canvas></div>
             <div class="sig-label">
                 <strong>Germano Jorge Francisco</strong><br>
                 Eng. Civil | CREA-SP 506.968.487-8
@@ -132,9 +132,9 @@
     </div>
 </div>
 
-<div class="no-print">
-    <button class="btn-clear" onclick="limparTudo()">Limpar Tudo</button>
-    <button class="btn-pdf" onclick="gerarPDF()">Gerar PDF Profissional</button>
+<div class="controls">
+    <button class="btn-reset" onclick="window.location.reload()">Limpar</button>
+    <button class="btn-pdf" onclick="gerarPDF()">Gerar PDF</button>
 </div>
 
 <script>
@@ -152,16 +152,16 @@
             inicio: document.getElementById('cadInicio').value,
             termino: document.getElementById('cadTermino').value
         };
-        if(!nova.nome) return alert("Digite ao menos o nome da obra");
+        if(!nova.nome) return alert("Insira o apelido da obra");
         obras.push(nova);
         localStorage.setItem('obras_forall', JSON.stringify(obras));
         atualizarSeletor();
-        alert("Obra salva!");
+        alert("Obra cadastrada!");
     }
 
     function atualizarSeletor() {
         const select = document.getElementById('seletorObra');
-        select.innerHTML = '<option value="">-- Selecione uma Obra --</option>';
+        select.innerHTML = '<option value="">-- Escolha --</option>';
         obras.forEach(o => { select.innerHTML += `<option value="${o.id}">${o.nome}</option>`; });
     }
 
@@ -177,52 +177,49 @@
     }
 
     function previewImages() {
-        const container = document.getElementById('preview-container');
-        container.innerHTML = '';
-        Array.from(document.getElementById('fotos').files).slice(0,6).forEach(file => {
+        const boxes = document.querySelectorAll('.photo-box');
+        const files = document.getElementById('fotos').files;
+        boxes.forEach(box => box.innerHTML = ''); // Limpa
+        
+        Array.from(files).slice(0,6).forEach((file, i) => {
             const reader = new FileReader();
             reader.onload = e => {
-                const div = document.createElement('div');
-                div.className = 'photo-box';
-                div.innerHTML = `<img src="${e.target.result}">`;
-                container.appendChild(div);
+                boxes[i].innerHTML = `<img src="${e.target.result}">`;
             };
             reader.readAsDataURL(file);
         });
     }
 
     async function gerarPDF() {
-        const element = document.getElementById('relatorio');
+        const element = document.getElementById('pdf-content');
+        
+        // Esconde o botão de upload e seletor de obra para o PDF
+        document.getElementById('fotos').style.display = 'none';
+        document.getElementById('seletorObra').parentElement.style.display = 'none';
+
         const opt = {
-            margin: [10, 5, 10, 5],
-            filename: `RDO_ForAll_${document.getElementById('dataAtual').value}.pdf`,
+            margin: 0,
+            filename: `RDO_ForAll.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, logging: false },
+            html2canvas: { 
+                scale: 2, 
+                useCORS: true, 
+                letterRendering: true,
+                scrollY: -window.scrollY // Corrige problema de corte se a página estiver com scroll
+            },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
-        
-        // Esconde o seletor de obra para não sair no PDF
-        document.querySelector('.no-print').style.visibility = 'hidden';
-        
+
         html2pdf().set(opt).from(element).save().then(() => {
-            document.querySelector('.no-print').style.visibility = 'visible';
+            document.getElementById('fotos').style.display = 'block';
+            document.getElementById('seletorObra').parentElement.style.display = 'block';
         });
     }
 
-    function limparTudo() { if(confirm("Deseja limpar todos os campos?")) location.reload(); }
-    
-    document.getElementById('dataAtual').valueAsDate = new Date();
-    atualizarSeletor();
-
-    // Ajusta o tamanho dos campos de assinatura ao carregar
-    window.addEventListener("resize", () => {
-        const ratio = Math.max(window.devicePixelRatio || 1, 1);
-        [document.getElementById('sig-proponente'), document.getElementById('sig-germano')].forEach(canvas => {
-            canvas.width = canvas.offsetWidth * ratio;
-            canvas.height = canvas.offsetHeight * ratio;
-            canvas.getContext("2d").scale(ratio, ratio);
-        });
-    });
+    window.onload = () => {
+        document.getElementById('dataAtual').valueAsDate = new Date();
+        atualizarSeletor();
+    }
 </script>
 
 </body>
