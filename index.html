@@ -4,86 +4,340 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RDO Profissional - ForAll Engenharia</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     <style>
-        :root { --primary: #1d3557; --secondary: #457b9d; }
+        :root { 
+            --primary: #1d3557; 
+            --secondary: #457b9d; 
+        }
         
-        /* Reset para Impressão */
-        * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
+        /* ========== ESTILOS PARA TELA ========== */
+        * { 
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
         
-        /* Container Principal do PDF */
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #f4f4f4; 
+            margin: 0; 
+            padding: 20px 0;
+        }
+        
+        /* Container Principal */
         #pdf-content { 
             background: white; 
             width: 210mm; 
             margin: 0 auto; 
-            padding: 10mm 15mm; 
-            min-height: 100vh;
+            padding: 15mm; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
 
-        /* Cabeçalho Fixo no Topo */
-        .header { display: flex; align-items: center; border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px; }
-        .logo { width: 140px; margin-right: 20px; }
-        .empresa-info { font-size: 10px; flex-grow: 1; line-height: 1.4; color: #333; }
-        .doc-title { text-align: right; color: var(--primary); font-weight: bold; font-size: 16px; }
-
-        /* Seções e Grids */
-        .section-title { background: var(--primary) !important; color: white !important; padding: 8px 12px; font-size: 12px; margin-top: 15px; text-transform: uppercase; font-weight: bold; border-radius: 2px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
-        .full { grid-column: span 2; }
+        /* Cabeçalho */
+        .header { 
+            display: flex; 
+            align-items: center; 
+            border-bottom: 2px solid var(--primary); 
+            padding-bottom: 10px; 
+            margin-bottom: 20px;
+        }
         
-        label { display: block; font-size: 10px; font-weight: bold; color: var(--primary); margin-bottom: 2px; }
+        .logo { 
+            width: 140px; 
+            height: auto;
+            margin-right: 20px;
+        }
         
-        /* Campos Formatados para Saída de Dados */
-        .data-field { border: 1px solid #eee; padding: 8px; font-size: 13px; min-height: 35px; background: #fff; border-radius: 4px; overflow-wrap: break-word; }
-        input, select, textarea { width: 100%; border: 1px solid #ccc; padding: 8px; font-size: 14px; border-radius: 4px; font-family: inherit; }
+        .empresa-info { 
+            font-size: 10px; 
+            flex-grow: 1; 
+            line-height: 1.6; 
+            color: #333; 
+        }
+        
+        .doc-title { 
+            text-align: right; 
+            color: var(--primary); 
+            font-weight: bold; 
+            font-size: 16px;
+        }
 
-        /* Registro Fotográfico Dinâmico - 2 por linha */
-        #preview-container { display: flex; flex-wrap: wrap; gap: 10mm; margin-top: 15px; justify-content: space-between; }
+        /* Seções */
+        .section-title { 
+            background: var(--primary); 
+            color: white; 
+            padding: 8px 12px; 
+            font-size: 12px; 
+            margin-top: 20px; 
+            margin-bottom: 10px;
+            text-transform: uppercase; 
+            font-weight: bold; 
+            border-radius: 3px;
+        }
+        
+        .grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 10px; 
+            margin-bottom: 10px;
+        }
+        
+        .full { 
+            grid-column: span 2; 
+        }
+        
+        label { 
+            display: block; 
+            font-size: 10px; 
+            font-weight: bold; 
+            color: var(--primary); 
+            margin-bottom: 3px; 
+        }
+        
+        .data-field { 
+            border: 1px solid #ddd; 
+            padding: 8px; 
+            font-size: 12px; 
+            min-height: 38px; 
+            background: #fafafa; 
+            border-radius: 3px;
+            line-height: 1.4;
+        }
+        
+        input, select, textarea { 
+            width: 100%; 
+            border: 1px solid #ccc; 
+            padding: 8px; 
+            font-size: 13px; 
+            border-radius: 3px; 
+            font-family: inherit; 
+        }
+        
+        textarea {
+            resize: vertical;
+        }
+
+        /* Registro Fotográfico */
+        #preview-container { 
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10mm; 
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+        
         .photo-box { 
-            width: 85mm; 
+            width: 100%; 
             height: 65mm; 
             border: 1px solid #ddd; 
             overflow: hidden; 
-            border-radius: 4px; 
-            page-break-inside: avoid; /* IMPEDE QUEBRA NO MEIO DA FOTO */
-            margin-bottom: 5mm;
+            border-radius: 4px;
+            background: #f9f9f9;
         }
-        .photo-box img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .photo-box img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover;
+            display: block;
+        }
 
         /* Assinaturas */
-        .signature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30mm; margin-top: 30px; text-align: center; page-break-inside: avoid; }
-        .sig-wrapper { border-bottom: 1px solid #000; margin-bottom: 5px; height: 100px; }
-        canvas { width: 100%; height: 100px; touch-action: none; }
-        .sig-label { font-size: 11px; color: #222; }
+        .signature-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 30mm; 
+            margin-top: 30px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .sig-wrapper { 
+            border-bottom: 2px solid #000; 
+            margin-bottom: 8px; 
+            height: 100px;
+        }
+        
+        canvas { 
+            width: 100%; 
+            height: 100px; 
+            touch-action: none;
+            cursor: crosshair;
+        }
+        
+        .sig-label { 
+            font-size: 11px; 
+            color: #222;
+            line-height: 1.4;
+        }
 
-        /* Painéis de Controle (Não saem no PDF) */
-        .no-print-area { max-width: 210mm; margin: 15px auto; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ccc; }
-        .controls { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; z-index: 1000; }
-        button { padding: 15px 30px; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        .btn-pdf { background: #27ae60; color: white; }
-        .btn-clear { background: #e74c3c; color: white; }
+        /* Área de Controle */
+        .no-print-area { 
+            max-width: 210mm; 
+            margin: 15px auto; 
+            background: #fff; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .controls { 
+            position: fixed; 
+            bottom: 30px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            display: flex; 
+            gap: 15px; 
+            z-index: 1000;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        
+        button { 
+            padding: 12px 25px; 
+            border: none; 
+            border-radius: 25px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .btn-pdf { 
+            background: #27ae60; 
+            color: white; 
+        }
+        
+        .btn-clear { 
+            background: #e74c3c; 
+            color: white; 
+        }
+        
+        .btn-limpar-sig {
+            background: #95a5a6;
+            color: white;
+            font-size: 11px;
+            padding: 5px 10px;
+            margin-top: 5px;
+        }
+
+        /* ========== ESTILOS PARA IMPRESSÃO ========== */
+        @media print {
+            @page {
+                size: A4;
+                margin: 12mm;
+            }
+            
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+            
+            body {
+                background: white;
+                margin: 0;
+                padding: 0;
+            }
+            
+            #pdf-content {
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+            }
+            
+            /* Esconde elementos de controle */
+            .no-print,
+            .no-print-area,
+            .controls,
+            .btn-limpar-sig {
+                display: none !important;
+            }
+            
+            /* Força impressão de cores de fundo */
+            .section-title {
+                background: var(--primary) !important;
+                color: white !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            /* Controle de quebras de página */
+            .header {
+                page-break-after: avoid;
+                break-after: avoid;
+            }
+            
+            .section-title {
+                page-break-after: avoid;
+                break-after: avoid;
+                page-break-before: auto;
+                break-before: auto;
+            }
+            
+            .grid {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            
+            .photo-box {
+                page-break-inside: avoid;
+                break-inside: avoid;
+                page-break-after: auto;
+                break-after: auto;
+            }
+            
+            .signature-grid {
+                page-break-inside: avoid;
+                break-inside: avoid;
+                margin-top: 20mm;
+            }
+            
+            /* Garante que imagens sejam impressas */
+            img {
+                max-width: 100%;
+                page-break-inside: avoid;
+            }
+            
+            /* Ajusta canvas para impressão */
+            canvas {
+                max-width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
 
+<!-- ÁREA DE CADASTRO (NÃO IMPRIME) -->
 <div class="no-print-area">
-    <h3 style="margin-top:0; color: var(--primary);">⚙️ Gestão de Obras (ForAll)</h3>
+    <h3 style="margin-bottom: 15px; color: var(--primary);">⚙️ Gestão de Obras (ForAll)</h3>
     <div class="grid">
         <input type="text" id="cadObra" placeholder="Apelido da Obra">
         <input type="text" id="cadContrato" placeholder="Nº Contrato">
         <input type="text" id="cadEmpresa" placeholder="Empresa Contratada">
         <input type="text" id="cadObjeto" placeholder="Objeto Completo">
-        <input type="date" id="cadInicio">
-        <input type="date" id="cadTermino">
+        <input type="date" id="cadInicio" placeholder="Data Início">
+        <input type="date" id="cadTermino" placeholder="Previsão Término">
     </div>
-    <button style="background: var(--secondary); color: white; width: 100%; margin-top: 10px;" onclick="salvarNovaObra()">Cadastrar Obra</button>
+    <button style="background: var(--secondary); color: white; width: 100%; margin-top: 10px;" onclick="salvarNovaObra()">
+        ➕ Cadastrar Obra
+    </button>
 </div>
 
+<!-- CONTEÚDO DO PDF -->
 <div id="pdf-content">
+    <!-- CABEÇALHO -->
     <div class="header">
-        <img src="https://forallengenharia.com.br/images/logo_original.svg" class="logo">
+        <img src="https://forallengenharia.com.br/images/logo_original.svg" class="logo" alt="Logo ForAll Engenharia">
         <div class="empresa-info">
             <strong>FORALL ENGENHARIA LTDA</strong><br>
             CNPJ 47.418.779/0001-23<br>
@@ -93,47 +347,89 @@
         <div class="doc-title">DIÁRIO DE OBRA</div>
     </div>
 
+    <!-- DADOS DO CONTRATO -->
     <div class="section-title">Dados do Contrato</div>
     <div class="grid">
         <div class="full no-print">
             <label>Selecione a Obra:</label>
             <select id="seletorObra" onchange="carregarDadosObra(this.value)">
-                <option value="">-- Escolha --</option>
+                <option value="">-- Escolha uma obra cadastrada --</option>
             </select>
         </div>
-        <div class="full"><label>Objeto/Obra:</label><div id="outObjeto" class="data-field"></div></div>
-        <div><label>Nº Contrato:</label><div id="outContrato" class="data-field"></div></div>
-        <div><label>Empresa:</label><div id="outEmpresa" class="data-field"></div></div>
-        <div><label>Data Início:</label><div id="outInicio" class="data-field"></div></div>
-        <div><label>Previsão Término:</label><div id="outTermino" class="data-field"></div></div>
+        <div class="full">
+            <label>Objeto/Obra:</label>
+            <div id="outObjeto" class="data-field"></div>
+        </div>
+        <div>
+            <label>Nº Contrato:</label>
+            <div id="outContrato" class="data-field"></div>
+        </div>
+        <div>
+            <label>Empresa:</label>
+            <div id="outEmpresa" class="data-field"></div>
+        </div>
+        <div>
+            <label>Data Início:</label>
+            <div id="outInicio" class="data-field"></div>
+        </div>
+        <div>
+            <label>Previsão Término:</label>
+            <div id="outTermino" class="data-field"></div>
+        </div>
     </div>
 
+    <!-- RELATÓRIO DE VISITA -->
     <div class="section-title">Relatório de Visita</div>
     <div class="grid">
-        <div><label>Data:</label><input type="date" id="dataAtual"></div>
-        <div><label>Clima:</label>
+        <div>
+            <label>Data:</label>
+            <input type="date" id="dataAtual">
+        </div>
+        <div>
+            <label>Clima:</label>
             <select id="clima">
-                <option>Ensolarado</option><option>Nublado</option><option>Chuvoso (Trabalhável)</option><option>Chuvoso (Interrompido)</option>
+                <option>Ensolarado</option>
+                <option>Nublado</option>
+                <option>Chuvoso (Trabalhável)</option>
+                <option>Chuvoso (Interrompido)</option>
             </select>
         </div>
-        <div><label>Efetivo (Funcionários):</label><input type="number" id="efetivo"></div>
-        <div class="full"><label>Atividades em Execução:</label><textarea id="atividades" rows="4"></textarea></div>
-        <div class="full"><label>Observações:</label><textarea id="obs" rows="3"></textarea></div>
+        <div>
+            <label>Efetivo (Funcionários):</label>
+            <input type="number" id="efetivo" min="0">
+        </div>
+        <div class="full">
+            <label>Atividades em Execução:</label>
+            <textarea id="atividades" rows="4" placeholder="Descreva as atividades realizadas no dia..."></textarea>
+        </div>
+        <div class="full">
+            <label>Observações:</label>
+            <textarea id="obs" rows="3" placeholder="Observações gerais, pendências, etc..."></textarea>
+        </div>
     </div>
 
+    <!-- REGISTRO FOTOGRÁFICO -->
     <div class="section-title">Registro Fotográfico</div>
     <div class="no-print" style="padding: 10px 0;">
         <input type="file" id="fotos" accept="image/*" multiple onchange="previewImages()">
+        <small style="color: #666; font-size: 11px;">Selecione uma ou mais imagens (máximo recomendado: 6 fotos)</small>
     </div>
     <div id="preview-container"></div>
 
+    <!-- ASSINATURAS -->
     <div class="signature-grid">
         <div>
-            <div class="sig-wrapper"><canvas id="sig-proponente"></canvas></div>
+            <div class="sig-wrapper">
+                <canvas id="sig-proponente"></canvas>
+            </div>
+            <button class="btn-limpar-sig no-print" onclick="limparAssinatura('proponente')">🗑️ Limpar</button>
             <div class="sig-label">Fiscalização / Proponente</div>
         </div>
         <div>
-            <div class="sig-wrapper"><canvas id="sig-germano"></canvas></div>
+            <div class="sig-wrapper">
+                <canvas id="sig-germano"></canvas>
+            </div>
+            <button class="btn-limpar-sig no-print" onclick="limparAssinatura('germano')">🗑️ Limpar</button>
             <div class="sig-label">
                 <strong>Germano Jorge Francisco</strong><br>
                 Eng. Civil | CREA-SP 506.968.487-8
@@ -142,100 +438,144 @@
     </div>
 </div>
 
-<div class="controls no-print">
-    <button class="btn-clear" onclick="window.location.reload()">Limpar Tudo</button>
-    <button class="btn-pdf" onclick="gerarPDF()">GERAR PDF AGORA</button>
+<!-- CONTROLES FLUTUANTES -->
+<div class="controls">
+    <button class="btn-clear" onclick="limparTudo()">🗑️ Limpar Tudo</button>
+    <button class="btn-pdf" onclick="imprimirPDF()">📄 IMPRIMIR PDF</button>
 </div>
 
 <script>
-    let obras = JSON.parse(localStorage.getItem('obras_forall')) || [];
-    const padProp = new SignaturePad(document.getElementById('sig-proponente'));
-    const padGerm = new SignaturePad(document.getElementById('sig-germano'));
+    // Variáveis globais
+    let obras = [];
+    let padProp, padGerm;
 
+    // Inicialização
+    window.onload = () => {
+        // Define data atual
+        document.getElementById('dataAtual').valueAsDate = new Date();
+        
+        // Inicializa signature pads
+        padProp = new SignaturePad(document.getElementById('sig-proponente'), {
+            backgroundColor: 'rgb(255, 255, 255)',
+            penColor: 'rgb(0, 0, 0)'
+        });
+        
+        padGerm = new SignaturePad(document.getElementById('sig-germano'), {
+            backgroundColor: 'rgb(255, 255, 255)',
+            penColor: 'rgb(0, 0, 0)'
+        });
+        
+        atualizarSeletor();
+    };
+
+    // Gerenciamento de obras
     function salvarNovaObra() {
         const nova = {
             id: Date.now(),
-            nome: document.getElementById('cadObra').value,
-            contrato: document.getElementById('cadContrato').value,
-            empresa: document.getElementById('cadEmpresa').value,
-            objeto: document.getElementById('cadObjeto').value,
+            nome: document.getElementById('cadObra').value.trim(),
+            contrato: document.getElementById('cadContrato').value.trim(),
+            empresa: document.getElementById('cadEmpresa').value.trim(),
+            objeto: document.getElementById('cadObjeto').value.trim(),
             inicio: document.getElementById('cadInicio').value,
             termino: document.getElementById('cadTermino').value
         };
-        if(!nova.nome) return alert("Insira o nome da obra");
+        
+        if(!nova.nome) {
+            alert("⚠️ Insira o nome/apelido da obra");
+            return;
+        }
+        
         obras.push(nova);
-        localStorage.setItem('obras_forall', JSON.stringify(obras));
         atualizarSeletor();
-        alert("Obra cadastrada!");
+        
+        // Limpa campos
+        document.getElementById('cadObra').value = '';
+        document.getElementById('cadContrato').value = '';
+        document.getElementById('cadEmpresa').value = '';
+        document.getElementById('cadObjeto').value = '';
+        document.getElementById('cadInicio').value = '';
+        document.getElementById('cadTermino').value = '';
+        
+        alert("✅ Obra cadastrada com sucesso!");
     }
 
     function atualizarSeletor() {
         const select = document.getElementById('seletorObra');
-        select.innerHTML = '<option value="">-- Escolha --</option>';
-        obras.forEach(o => { select.innerHTML += `<option value="${o.id}">${o.nome}</option>`; });
+        select.innerHTML = '<option value="">-- Escolha uma obra cadastrada --</option>';
+        obras.forEach(o => {
+            select.innerHTML += `<option value="${o.id}">${o.nome}</option>`;
+        });
     }
 
     function carregarDadosObra(id) {
-        const o = obras.find(obra => obra.id == id);
-        if(o) {
-            document.getElementById('outObjeto').innerText = o.objeto;
-            document.getElementById('outContrato').innerText = o.contrato;
-            document.getElementById('outEmpresa').innerText = o.empresa;
-            document.getElementById('outInicio').innerText = o.inicio;
-            document.getElementById('outTermino').innerText = o.termino;
+        if(!id) return;
+        
+        const obra = obras.find(o => o.id == id);
+        if(obra) {
+            document.getElementById('outObjeto').innerText = obra.objeto;
+            document.getElementById('outContrato').innerText = obra.contrato;
+            document.getElementById('outEmpresa').innerText = obra.empresa;
+            document.getElementById('outInicio').innerText = formatarData(obra.inicio);
+            document.getElementById('outTermino').innerText = formatarData(obra.termino);
         }
     }
 
+    function formatarData(data) {
+        if(!data) return '';
+        const [ano, mes, dia] = data.split('-');
+        return `${dia}/${mes}/${ano}`;
+    }
+
+    // Gerenciamento de fotos
     function previewImages() {
         const container = document.getElementById('preview-container');
         const files = document.getElementById('fotos').files;
+        
         container.innerHTML = '';
+        
+        if(files.length > 6) {
+            alert("⚠️ Recomendamos no máximo 6 fotos para melhor formatação no PDF");
+        }
+        
         Array.from(files).forEach(file => {
             const reader = new FileReader();
             reader.onload = e => {
                 const div = document.createElement('div');
                 div.className = 'photo-box';
-                div.innerHTML = `<img src="${e.target.result}">`;
+                div.innerHTML = `<img src="${e.target.result}" alt="Foto da obra">`;
                 container.appendChild(div);
             };
             reader.readAsDataURL(file);
         });
     }
 
-    async function gerarPDF() {
-        const element = document.getElementById('pdf-content');
-        
-        // Esconde o que não deve sair
-        document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
-        document.querySelectorAll('.no-print-area').forEach(el => el.style.display = 'none');
-
-        const opt = {
-            margin: 0,
-            filename: `RDO_ForAll_${new Date().toLocaleDateString()}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { 
-                scale: 2, 
-                useCORS: true,
-                logging: false,
-                windowWidth: 800 // Força largura estável
-            },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } // O SEGREDO ESTÁ AQUI
-        };
-
-        html2pdf().set(opt).from(element).save().then(() => {
-            document.querySelectorAll('.no-print').forEach(el => el.style.display = 'flex');
-            document.querySelectorAll('.no-print-area').forEach(el => el.style.display = 'block');
-            document.getElementById('fotos').parentElement.style.display = 'block';
-        });
+    // Gerenciamento de assinaturas
+    function limparAssinatura(tipo) {
+        if(tipo === 'proponente') {
+            padProp.clear();
+        } else {
+            padGerm.clear();
+        }
     }
 
-    window.onload = () => {
-        document.getElementById('dataAtual').valueAsDate = new Date();
-        atualizarSeletor();
+    // Função de impressão
+    function imprimirPDF() {
+        // Validações básicas
+        if(!document.getElementById('outObjeto').innerText) {
+            alert("⚠️ Selecione uma obra antes de gerar o PDF");
+            return;
+        }
+        
+        // Abre diálogo de impressão do navegador
+        window.print();
+    }
+
+    function limparTudo() {
+        if(confirm("⚠️ Deseja realmente limpar todos os dados? Esta ação não pode ser desfeita.")) {
+            window.location.reload();
+        }
     }
 </script>
 
 </body>
 </html>
-
