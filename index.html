@@ -8,48 +8,68 @@
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     <style>
         :root { --primary: #1d3557; --secondary: #457b9d; }
-        body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 10px; }
         
-        #pdf-content { background: white; width: 210mm; min-height: 297mm; margin: auto; padding: 15mm; box-sizing: border-box; }
+        /* Reset para Impressão */
+        * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
         
-        .header { display: flex; align-items: center; border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px; }
-        .logo { width: 150px; margin-right: 20px; }
-        .empresa-info { font-size: 11px; flex-grow: 1; line-height: 1.4; color: #333; }
-        .doc-title { text-align: right; color: var(--primary); font-weight: bold; font-size: 18px; }
+        /* Container Principal do PDF */
+        #pdf-content { 
+            background: white; 
+            width: 210mm; 
+            margin: 0 auto; 
+            padding: 10mm 15mm; 
+            min-height: 100vh;
+        }
 
-        .section-title { background: var(--primary); color: white; padding: 8px 12px; font-size: 13px; margin-top: 20px; text-transform: uppercase; font-weight: bold; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
+        /* Cabeçalho Fixo no Topo */
+        .header { display: flex; align-items: center; border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px; }
+        .logo { width: 140px; margin-right: 20px; }
+        .empresa-info { font-size: 10px; flex-grow: 1; line-height: 1.4; color: #333; }
+        .doc-title { text-align: right; color: var(--primary); font-weight: bold; font-size: 16px; }
+
+        /* Seções e Grids */
+        .section-title { background: var(--primary) !important; color: white !important; padding: 8px 12px; font-size: 12px; margin-top: 15px; text-transform: uppercase; font-weight: bold; border-radius: 2px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
         .full { grid-column: span 2; }
         
-        label { display: block; font-size: 11px; font-weight: bold; color: var(--primary); margin-bottom: 3px; }
-        input, select, textarea { width: 100%; border: 1px solid #ccc; padding: 10px; font-size: 14px; border-radius: 4px; box-sizing: border-box; background: #fff; font-family: inherit; }
+        label { display: block; font-size: 10px; font-weight: bold; color: var(--primary); margin-bottom: 2px; }
+        
+        /* Campos Formatados para Saída de Dados */
+        .data-field { border: 1px solid #eee; padding: 8px; font-size: 13px; min-height: 35px; background: #fff; border-radius: 4px; overflow-wrap: break-word; }
+        input, select, textarea { width: 100%; border: 1px solid #ccc; padding: 8px; font-size: 14px; border-radius: 4px; font-family: inherit; }
 
-        /* Registro Fotográfico Dinâmico */
-        #preview-container { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 10px; 
-            margin-top: 15px; 
+        /* Registro Fotográfico Dinâmico - 2 por linha */
+        #preview-container { display: flex; flex-wrap: wrap; gap: 10mm; margin-top: 15px; justify-content: space-between; }
+        .photo-box { 
+            width: 85mm; 
+            height: 65mm; 
+            border: 1px solid #ddd; 
+            overflow: hidden; 
+            border-radius: 4px; 
+            page-break-inside: avoid; /* IMPEDE QUEBRA NO MEIO DA FOTO */
+            margin-bottom: 5mm;
         }
-        .photo-box { border: 1px solid #ddd; height: 220px; display: flex; overflow: hidden; border-radius: 4px; background: #f9f9f9; page-break-inside: avoid; }
         .photo-box img { width: 100%; height: 100%; object-fit: cover; }
 
-        .signature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px; text-align: center; page-break-inside: avoid; }
-        .sig-wrapper { border-bottom: 1px solid #000; margin-bottom: 5px; }
-        canvas { width: 100%; height: 120px; background: #fafafa; border: 1px dashed #ccc; }
-        .sig-label { font-size: 12px; color: #222; line-height: 1.4; }
+        /* Assinaturas */
+        .signature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30mm; margin-top: 30px; text-align: center; page-break-inside: avoid; }
+        .sig-wrapper { border-bottom: 1px solid #000; margin-bottom: 5px; height: 100px; }
+        canvas { width: 100%; height: 100px; touch-action: none; }
+        .sig-label { font-size: 11px; color: #222; }
 
-        .no-print-area { max-width: 210mm; margin: 20px auto; background: #fff; padding: 20px; border-radius: 8px; border: 2px solid var(--secondary); }
-        .controls { position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px; z-index: 9999; }
-        button { padding: 15px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        /* Painéis de Controle (Não saem no PDF) */
+        .no-print-area { max-width: 210mm; margin: 15px auto; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ccc; }
+        .controls { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; z-index: 1000; }
+        button { padding: 15px 30px; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         .btn-pdf { background: #27ae60; color: white; }
-        .btn-reset { background: #e74c3c; color: white; }
+        .btn-clear { background: #e74c3c; color: white; }
     </style>
 </head>
 <body>
 
 <div class="no-print-area">
-    <h3 style="margin-top:0; color: var(--primary);">🛠️ Gestão de Obras (ForAll)</h3>
+    <h3 style="margin-top:0; color: var(--primary);">⚙️ Gestão de Obras (ForAll)</h3>
     <div class="grid">
         <input type="text" id="cadObra" placeholder="Apelido da Obra">
         <input type="text" id="cadContrato" placeholder="Nº Contrato">
@@ -58,56 +78,54 @@
         <input type="date" id="cadInicio">
         <input type="date" id="cadTermino">
     </div>
-    <button style="background: var(--secondary); color: white; width: 100%; margin-top: 10px;" onclick="salvarNovaObra()">+ Cadastrar Obra</button>
+    <button style="background: var(--secondary); color: white; width: 100%; margin-top: 10px;" onclick="salvarNovaObra()">Cadastrar Obra</button>
 </div>
 
 <div id="pdf-content">
     <div class="header">
-        <img src="https://www.forallengenharia.com.br/wp-content/uploads/2022/07/logo-forall.png" class="logo">
+        <img src="blob:https://onedrive.live.com/5104315b-041f-42d0-9689-60eb936d72db" class="logo">
         <div class="empresa-info">
-            <strong>FORALL ENGENHARIA</strong><br>
+            <strong>FORALL ENGENHARIA LTDA</strong><br>
             CNPJ 47.418.779/0001-23<br>
-            Holambra e região - SP<br>
-            (19) 99624-3591 | contato@forallengenharia.com.br
+            Holambra e região - SP | (19) 99624-3591<br>
+            contato@forallengenharia.com.br
         </div>
         <div class="doc-title">DIÁRIO DE OBRA</div>
     </div>
 
     <div class="section-title">Dados do Contrato</div>
     <div class="grid">
-        <div class="full">
-            <label>Obra Selecionada:</label>
+        <div class="full no-print">
+            <label>Selecione a Obra:</label>
             <select id="seletorObra" onchange="carregarDadosObra(this.value)">
                 <option value="">-- Escolha --</option>
             </select>
         </div>
-        <div class="full"><label>Objeto/Obra:</label><input type="text" id="rdoObjeto"></div>
-        <div><label>Nº Contrato:</label><input type="text" id="rdoContrato"></div>
-        <div><label>Empresa:</label><input type="text" id="rdoEmpresa"></div>
-        <div><label>Data Início:</label><input type="text" id="rdoInicio"></div>
-        <div><label>Previsão Término:</label><input type="text" id="rdoTermino"></div>
+        <div class="full"><label>Objeto/Obra:</label><div id="outObjeto" class="data-field"></div></div>
+        <div><label>Nº Contrato:</label><div id="outContrato" class="data-field"></div></div>
+        <div><label>Empresa:</label><div id="outEmpresa" class="data-field"></div></div>
+        <div><label>Data Início:</label><div id="outInicio" class="data-field"></div></div>
+        <div><label>Previsão Término:</label><div id="outTermino" class="data-field"></div></div>
     </div>
 
-    <div class="section-title">Relatório de Campo</div>
+    <div class="section-title">Relatório de Visita</div>
     <div class="grid">
-        <div><label>Data da Visita:</label><input type="date" id="dataAtual"></div>
-        <div><label>Condição Climática:</label>
+        <div><label>Data:</label><input type="date" id="dataAtual"></div>
+        <div><label>Clima:</label>
             <select id="clima">
                 <option>Ensolarado</option><option>Nublado</option><option>Chuvoso (Trabalhável)</option><option>Chuvoso (Interrompido)</option>
             </select>
         </div>
         <div><label>Efetivo (Funcionários):</label><input type="number" id="efetivo"></div>
         <div class="full"><label>Atividades em Execução:</label><textarea id="atividades" rows="4"></textarea></div>
-        <div class="full"><label>Observações Técnicas:</label><textarea id="obs" rows="3"></textarea></div>
+        <div class="full"><label>Observações:</label><textarea id="obs" rows="3"></textarea></div>
     </div>
 
     <div class="section-title">Registro Fotográfico</div>
-    <div style="padding: 10px 0;" class="no-print-element">
-        <label>Selecionar Fotos (sem limite):</label>
+    <div class="no-print" style="padding: 10px 0;">
         <input type="file" id="fotos" accept="image/*" multiple onchange="previewImages()">
     </div>
-    <div id="preview-container">
-        </div>
+    <div id="preview-container"></div>
 
     <div class="signature-grid">
         <div>
@@ -124,9 +142,9 @@
     </div>
 </div>
 
-<div class="controls">
-    <button class="btn-reset" onclick="window.location.reload()">Limpar Tudo</button>
-    <button class="btn-pdf" onclick="gerarPDF()">Gerar PDF</button>
+<div class="controls no-print">
+    <button class="btn-clear" onclick="window.location.reload()">Limpar Tudo</button>
+    <button class="btn-pdf" onclick="gerarPDF()">GERAR PDF AGORA</button>
 </div>
 
 <script>
@@ -144,7 +162,7 @@
             inicio: document.getElementById('cadInicio').value,
             termino: document.getElementById('cadTermino').value
         };
-        if(!nova.nome) return alert("Insira o apelido da obra");
+        if(!nova.nome) return alert("Insira o nome da obra");
         obras.push(nova);
         localStorage.setItem('obras_forall', JSON.stringify(obras));
         atualizarSeletor();
@@ -160,20 +178,19 @@
     function carregarDadosObra(id) {
         const o = obras.find(obra => obra.id == id);
         if(o) {
-            document.getElementById('rdoObjeto').value = o.objeto;
-            document.getElementById('rdoContrato').value = o.contrato;
-            document.getElementById('rdoEmpresa').value = o.empresa;
-            document.getElementById('rdoInicio').value = o.inicio;
-            document.getElementById('rdoTermino').value = o.termino;
+            document.getElementById('outObjeto').innerText = o.objeto;
+            document.getElementById('outContrato').innerText = o.contrato;
+            document.getElementById('outEmpresa').innerText = o.empresa;
+            document.getElementById('outInicio').innerText = o.inicio;
+            document.getElementById('outTermino').innerText = o.termino;
         }
     }
 
     function previewImages() {
         const container = document.getElementById('preview-container');
         const files = document.getElementById('fotos').files;
-        container.innerHTML = ''; // Limpa antes de adicionar
-        
-        Array.from(files).forEach((file) => {
+        container.innerHTML = '';
+        Array.from(files).forEach(file => {
             const reader = new FileReader();
             reader.onload = e => {
                 const div = document.createElement('div');
@@ -188,28 +205,28 @@
     async function gerarPDF() {
         const element = document.getElementById('pdf-content');
         
-        // Ocultar elementos desnecessários para o PDF
-        const uploadInput = document.querySelector('.no-print-element');
-        const seletorWrapper = document.getElementById('seletorObra').parentElement;
-        
-        uploadInput.style.display = 'none';
-        seletorWrapper.style.display = 'none';
+        // Esconde o que não deve sair
+        document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.no-print-area').forEach(el => el.style.display = 'none');
 
         const opt = {
-            margin: [10, 0, 10, 0], // Margem superior e inferior para evitar cortes
-            filename: `RDO_ForAll_${document.getElementById('rdoObjeto').value || 'Obra'}.pdf`,
+            margin: 0,
+            filename: `RDO_ForAll_${new Date().toLocaleDateString()}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { 
                 scale: 2, 
                 useCORS: true,
-                scrollY: -window.scrollY 
+                logging: false,
+                windowWidth: 800 // Força largura estável
             },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } // O SEGREDO ESTÁ AQUI
         };
 
         html2pdf().set(opt).from(element).save().then(() => {
-            uploadInput.style.display = 'block';
-            seletorWrapper.style.display = 'block';
+            document.querySelectorAll('.no-print').forEach(el => el.style.display = 'flex');
+            document.querySelectorAll('.no-print-area').forEach(el => el.style.display = 'block');
+            document.getElementById('fotos').parentElement.style.display = 'block';
         });
     }
 
