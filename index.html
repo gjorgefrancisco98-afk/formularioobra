@@ -550,14 +550,27 @@
 </div>
 
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwDSsyQ3heKyOwxmmNbFaPIbxqzy30WUIRD1-LiUUJx9IA2Lqm9msLOkXuuT0tDD0t6/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwbVgZJcwjdzCPVU7hwZb5P-Le2-BVohVS38pXulaJxnJFHMv_HIdLMR6ZQXXTvyHCd/exec';
     let obras = [];
     let padProp, padGerm;
 
-    // Funções de persistência de dados (API)
+    // Funções de persistência de dados (API - Form Submission)
+    // O Apps Script deve ser reescrito para receber dados de formulário (e.parameter)
+    
+    // Função de callback para o Apps Script (chamada pelo iframe)
+    function handleResponse(response) {
+        if (response.status === 'success') {
+            alert(response.message);
+            carregarObras(); // Recarrega a lista após sucesso
+        } else {
+            alert("⚠️ Erro na operação: " + response.message);
+        }
+    }
+
+    // Carrega dados (GET)
     async function carregarObras() {
         try {
-            const response = await fetch(API_URL);
+            const response = await fetch(API_URL + '?action=GET'); // Adiciona action=GET para o doGet
             if (!response.ok) throw new Error('Erro ao carregar obras da API.');
             obras = await response.json();
             // Adiciona um campo 'id' se estiver faltando (para compatibilidade)
@@ -572,46 +585,37 @@
         }
     }
 
-    async function salvarObraNaAPI(obra) {
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                mode: 'no-cors', // Necessário para Apps Script
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ action: 'ADD', obra: obra })
-            });
-            // Não podemos ler a resposta com 'no-cors', assumimos sucesso
-            return true; 
-        } catch (error) {
-            console.error("Erro ao salvar obra:", error);
-            alert("⚠️ Erro ao salvar obra no servidor.");
-            return false;
-        }
-    }
+    // Envia dados (POST) via formulário oculto
+    function enviarDadosAPI(data) {
+        const form = document.createElement('form');
+        form.action = API_URL;
+        form.method = 'POST';
+        form.target = 'hidden-iframe'; // Envia para o iframe oculto
+        form.style.display = 'none';
 
-    async function excluirObraNaAPI(id) {
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                mode: 'no-cors', // Necessário para Apps Script
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ action: 'DELETE', obra: { id: id } })
-            });
-            // Não podemos ler a resposta com 'no-cors', assumimos sucesso
-            return true; 
-        } catch (error) {
-            console.error("Erro ao excluir obra:", error);
-            alert("⚠️ Erro ao excluir obra no servidor.");
-            return false;
+        // Adiciona os campos de dados
+        for (const key in data) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = data[key];
+            form.appendChild(input);
         }
+
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
     }
 
     // Inicialização
     window.onload = async () => {
+        // Adiciona o iframe oculto para comunicação
+        const iframe = document.createElement('iframe');
+        iframe.name = 'hidden-iframe';
+        iframe.id = 'hidden-iframe';
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+        
         await carregarObras(); // Carrega dados da API
         
         // Define data atual
@@ -654,13 +658,17 @@
             return;
         }
         
-        const sucesso = await salvarObraNaAPI(nova);
-        if (sucesso) {
-            obras.push(nova);
-            atualizarSeletor();
-        } else {
-            return; // Sai se falhar
-        }
+        // Envia dados via Form Submission
+        enviarDadosAPI({
+            action: 'ADD',
+            id: nova.id,
+            nome: nova.nome,
+            contrato: nova.contrato,
+            empresa: nova.empresa,
+            objeto: nova.objeto,
+            inicio: nova.inicio,
+            termino: nova.termino
+        });
         
         // Limpa campos
         document.getElementById('cadObra').value = '';
@@ -670,28 +678,25 @@
         document.getElementById('cadInicio').value = '';
         document.getElementById('cadTermino').value = '';
         
-        alert("✅ Obra cadastrada com sucesso!");
+        // A mensagem de sucesso será dada pelo handleResponse após o Apps Script responder
+        // A lista será recarregada pelo handleResponse
+        alert("Enviando dados para o servidor...");
     }
 
-    async function excluirObra(id) {
+    function excluirObra(id) {
         if (!id || id === 'null') return;
         
         const obraNome = obras.find(o => o.id == id)?.nome || 'esta obra';
         
         if (confirm(`Tem certeza que deseja excluir a obra "${obraNome}"?`)) {
-            const sucesso = await excluirObraNaAPI(id);
+            // Envia dados via Form Submission
+            enviarDadosAPI({
+                action: 'DELETE',
+                id: id
+            });
             
-            if (sucesso) {
-                obras = obras.filter(o => o.id != id);
-                atualizarSeletor();
-                
-                // Limpa os campos de contrato se a obra excluída estava selecionada
-                if (document.getElementById('seletorObra').value == id) {
-                    limparDadosContrato();
-                }
-                
-                alert("🗑️ Obra excluída com sucesso!");
-            }
+            // A mensagem de sucesso será dada pelo handleResponse após o Apps Script responder
+            alert("Enviando solicitação de exclusão para o servidor...");
         }
     }
 
