@@ -41,6 +41,10 @@
             border-bottom: 2px solid var(--primary); 
             padding-bottom: 10px; 
             margin-bottom: 20px;
+            /* Garantir que o texto da empresa fique ao lado do logo por padrão (desktop/print) */
+            flex-direction: row;
+            /* Força o alinhamento vertical centralizado */
+            align-items: center;
         }
         
         .logo { 
@@ -54,6 +58,7 @@
             flex-grow: 1; 
             line-height: 1.6; 
             color: #333; 
+            margin-right: 10px; /* Espaçamento entre info e título */
         }
         
         .doc-title { 
@@ -275,6 +280,10 @@
             .header {
                 page-break-after: avoid;
                 break-after: avoid;
+                /* FORÇA ALINHAMENTO HORIZONTAL NA IMPRESSÃO */
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
             }
             
             .section-title {
@@ -312,6 +321,63 @@
             canvas {
                 max-width: 100%;
             }
+            
+            /* FORÇA LAYOUT DE DESKTOP (2 COLUNAS) NA IMPRESSÃO */
+            .grid, #preview-container, .signature-grid {
+                grid-template-columns: 1fr 1fr !important;
+            }
+            .full {
+                grid-column: span 2 !important;
+            }
+        }
+
+        /* ========== ESTILOS PARA RESPONSIVIDADE (CELULAR) ========== */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px 0;
+            }
+            #pdf-content, .no-print-area {
+                width: 95%;
+                max-width: 95%;
+                padding: 10px;
+            }
+            .grid {
+                grid-template-columns: 1fr; /* Coluna única no celular */
+            }
+            .full {
+                grid-column: span 1;
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }          .logo {
+                width: 100px;
+                margin-bottom: 10px;
+            }
+            .doc-title {
+                text-align: left;
+                font-size: 14px;
+            }
+            #preview-container {
+                grid-template-columns: 1fr; /* Coluna única para fotos no celular */
+                gap: 5mm;
+            }
+            .photo-box {
+                height: 50mm;
+            }
+            .signature-grid {
+                grid-template-columns: 1fr; /* Coluna única para assinaturas */
+                gap: 15mm;
+            }
+            .controls {
+                bottom: 10px;
+                padding: 10px 15px;
+                gap: 10px;
+            }
+            button {
+                padding: 10px 15px;
+                font-size: 12px;
+            }
         }
     </style>
 </head>
@@ -331,6 +397,17 @@
     <button style="background: var(--secondary); color: white; width: 100%; margin-top: 10px;" onclick="salvarNovaObra()">
         ➕ Cadastrar Obra
     </button>
+
+    <!-- NOVO: Área de Exclusão -->
+    <div class="full" style="margin-top: 15px;">
+        <label>Excluir Obra:</label>
+        <select id="seletorExcluir" onchange="document.getElementById('btnExcluirObra').setAttribute('data-id', this.value); document.getElementById('btnExcluirObra').disabled = !this.value">
+            <option value="">-- Escolha a obra para excluir --</option>
+        </select>
+        <button id="btnExcluirObra" style="background: #e74c3c; color: white; width: 100%; margin-top: 5px;" onclick="excluirObra(this.getAttribute('data-id'))" disabled>
+            🗑️ Excluir Obra Selecionada
+        </button>
+    </div>
 </div>
 
 <!-- CONTEÚDO DO PDF -->
@@ -356,25 +433,45 @@
                 <option value="">-- Escolha uma obra cadastrada --</option>
             </select>
         </div>
+        
+        <!-- NOVO: Número do Relatório -->
+        <div>
+            <label>Nº do Relatório (RDO):</label>
+            <input type="number" id="numRDO" min="1" value="1">
+        </div>
+        
+        
+        
+        
         <div class="full">
             <label>Objeto/Obra:</label>
             <div id="outObjeto" class="data-field"></div>
         </div>
+        
         <div>
             <label>Nº Contrato:</label>
             <div id="outContrato" class="data-field"></div>
         </div>
+        
         <div>
             <label>Empresa:</label>
             <div id="outEmpresa" class="data-field"></div>
         </div>
+        
         <div>
             <label>Data Início:</label>
             <div id="outInicio" class="data-field"></div>
         </div>
+        
         <div>
             <label>Previsão Término:</label>
             <div id="outTermino" class="data-field"></div>
+        </div>
+        
+        <!-- NOVO: Dias Faltantes -->
+        <div>
+            <label>Dias Faltantes para Vencimento:</label>
+            <div id="diasFaltantes" class="data-field" style="font-weight: bold; color: #e74c3c;"></div>
         </div>
     </div>
 
@@ -423,7 +520,10 @@
                 <canvas id="sig-proponente"></canvas>
             </div>
             <button class="btn-limpar-sig no-print" onclick="limparAssinatura('proponente')">🗑️ Limpar</button>
-            <div class="sig-label">Entreposto</div>
+            <div class="sig-label">
+                <span id="outProponenteLabel">Fiscalização / Proponente</span>
+                <input type="text" id="entreposto" placeholder="Fiscalização / Proponente" class="no-print" oninput="document.getElementById('outProponenteLabel').innerText = this.value || 'Fiscalização / Proponente'">
+            </div>
         </div>
         <div>
             <div class="sig-wrapper">
@@ -436,6 +536,11 @@
             </div>
         </div>
     </div>
+    
+    <!-- NOVO: Data da Visita no Final -->
+    <div style="text-align: right; margin-top: 20px; font-size: 10px; color: #555;">
+        Data da Visita Técnica: <span id="dataVisitaFinal"></span>
+    </div>
 </div>
 
 <!-- CONTROLES FLUTUANTES -->
@@ -445,15 +550,74 @@
 </div>
 
 <script>
-    // Variáveis globais
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwDSsyQ3heKyOwxmmNbFaPIbxqzy30WUIRD1-LiUUJx9IA2Lqm9msLOkXuuT0tDD0t6/exec';
     let obras = [];
     let padProp, padGerm;
 
+    // Funções de persistência de dados (API)
+    async function carregarObras() {
+        try {
+            const response = await fetch(API_URL);
+            if (!response.ok) throw new Error('Erro ao carregar obras da API.');
+            obras = await response.json();
+            // Adiciona um campo 'id' se estiver faltando (para compatibilidade)
+            obras = obras.map(obra => ({
+                ...obra,
+                id: obra.id || Date.now() + Math.random() // Garante um ID se não vier da planilha
+            }));
+            atualizarSeletor();
+        } catch (error) {
+            console.error("Erro ao carregar obras:", error);
+            alert("⚠️ Erro ao carregar obras do servidor. Verifique a conexão e a API.");
+        }
+    }
+
+    async function salvarObraNaAPI(obra) {
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors', // Necessário para Apps Script
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ action: 'ADD', obra: obra })
+            });
+            // Não podemos ler a resposta com 'no-cors', assumimos sucesso
+            return true; 
+        } catch (error) {
+            console.error("Erro ao salvar obra:", error);
+            alert("⚠️ Erro ao salvar obra no servidor.");
+            return false;
+        }
+    }
+
+    async function excluirObraNaAPI(id) {
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors', // Necessário para Apps Script
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ action: 'DELETE', obra: { id: id } })
+            });
+            // Não podemos ler a resposta com 'no-cors', assumimos sucesso
+            return true; 
+        } catch (error) {
+            console.error("Erro ao excluir obra:", error);
+            alert("⚠️ Erro ao excluir obra no servidor.");
+            return false;
+        }
+    }
+
     // Inicialização
-    window.onload = () => {
+    window.onload = async () => {
+        await carregarObras(); // Carrega dados da API
+        
         // Define data atual
         document.getElementById('dataAtual').valueAsDate = new Date();
-        
+        document.getElementById('dataVisitaFinal').innerText = formatarData(document.getElementById('dataAtual').value);
+
         // Inicializa signature pads
         padProp = new SignaturePad(document.getElementById('sig-proponente'), {
             backgroundColor: 'rgb(255, 255, 255)',
@@ -466,6 +630,11 @@
         });
         
         atualizarSeletor();
+        
+        // Listener para atualizar a data final
+        document.getElementById('dataAtual').addEventListener('change', function() {
+            document.getElementById('dataVisitaFinal').innerText = formatarData(this.value);
+        });
     };
 
     // Gerenciamento de obras
@@ -480,13 +649,18 @@
             termino: document.getElementById('cadTermino').value
         };
         
-        if(!nova.nome) {
-            alert("⚠️ Insira o nome/apelido da obra");
+        if(!nova.nome || !nova.termino) {
+            alert("⚠️ Insira o nome da obra e a previsão de término.");
             return;
         }
         
-        obras.push(nova);
-        atualizarSeletor();
+        const sucesso = await salvarObraNaAPI(nova);
+        if (sucesso) {
+            obras.push(nova);
+            atualizarSeletor();
+        } else {
+            return; // Sai se falhar
+        }
         
         // Limpa campos
         document.getElementById('cadObra').value = '';
@@ -499,16 +673,83 @@
         alert("✅ Obra cadastrada com sucesso!");
     }
 
+    async function excluirObra(id) {
+        if (!id || id === 'null') return;
+        
+        const obraNome = obras.find(o => o.id == id)?.nome || 'esta obra';
+        
+        if (confirm(`Tem certeza que deseja excluir a obra "${obraNome}"?`)) {
+            const sucesso = await excluirObraNaAPI(id);
+            
+            if (sucesso) {
+                obras = obras.filter(o => o.id != id);
+                atualizarSeletor();
+                
+                // Limpa os campos de contrato se a obra excluída estava selecionada
+                if (document.getElementById('seletorObra').value == id) {
+                    limparDadosContrato();
+                }
+                
+                alert("🗑️ Obra excluída com sucesso!");
+            }
+        }
+    }
+
     function atualizarSeletor() {
-        const select = document.getElementById('seletorObra');
-        select.innerHTML = '<option value="">-- Escolha uma obra cadastrada --</option>';
+        const selectObra = document.getElementById('seletorObra');
+        const selectExcluir = document.getElementById('seletorExcluir');
+        
+        // Salva o ID da obra selecionada para manter a seleção após a atualização
+        const selectedId = selectObra.value;
+
+        selectObra.innerHTML = '<option value="">-- Escolha uma obra cadastrada --</option>';
+        selectExcluir.innerHTML = '<option value="">-- Escolha a obra para excluir --</option>';
+        
         obras.forEach(o => {
-            select.innerHTML += `<option value="${o.id}">${o.nome}</option>`;
+            const option = `<option value="${o.id}">${o.nome}</option>`;
+            selectObra.innerHTML += option;
+            selectExcluir.innerHTML += option;
         });
+        
+        // Restaura a seleção
+        selectObra.value = selectedId;
+        
+        // Atualiza o botão de exclusão
+        document.getElementById('btnExcluirObra').disabled = !selectExcluir.value;
+    }
+
+    function limparDadosContrato() {
+        document.getElementById('outObjeto').innerText = '';
+        document.getElementById('outContrato').innerText = '';
+        document.getElementById('outEmpresa').innerText = '';
+        document.getElementById('outInicio').innerText = '';
+        document.getElementById('outTermino').innerText = '';
+        document.getElementById('diasFaltantes').innerText = '';
+    }
+
+    function calcularDiasFaltantes(dataTermino) {
+        if (!dataTermino) return '';
+        
+        const hoje = new Date();
+        const termino = new Date(dataTermino + 'T00:00:00'); // Garante que a hora seja 00:00:00
+        
+        const diffTime = termino.getTime() - hoje.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays < 0) {
+            return `Vencido há ${Math.abs(diffDays)} dias`;
+        } else if (diffDays === 0) {
+            return 'Vence Hoje!';
+        } else {
+            return `${diffDays} dias`;
+        }
     }
 
     function carregarDadosObra(id) {
-        if(!id) return;
+        if(!id) {
+            limparDadosContrato();
+            return;
+        }
         
         const obra = obras.find(o => o.id == id);
         if(obra) {
@@ -517,6 +758,9 @@
             document.getElementById('outEmpresa').innerText = obra.empresa;
             document.getElementById('outInicio').innerText = formatarData(obra.inicio);
             document.getElementById('outTermino').innerText = formatarData(obra.termino);
+            
+            // NOVO: Calcula dias faltantes
+            document.getElementById('diasFaltantes').innerText = calcularDiasFaltantes(obra.termino);
         }
     }
 
@@ -526,8 +770,40 @@
         return `${dia}/${mes}/${ano}`;
     }
 
+    // Função para redimensionar e comprimir a imagem
+    function resizeAndCompressImage(file, maxWidth, quality) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxWidth) {
+                        height = height * (maxWidth / width);
+                        width = maxWidth;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Converte para JPEG com qualidade reduzida (ex: 0.7)
+                    const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    resolve(dataUrl);
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
     // Gerenciamento de fotos
-    function previewImages() {
+    async function previewImages() {
         const container = document.getElementById('preview-container');
         const files = document.getElementById('fotos').files;
         
@@ -537,16 +813,19 @@
             alert("⚠️ Recomendamos no máximo 6 fotos para melhor formatação no PDF");
         }
         
-        Array.from(files).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = e => {
-                const div = document.createElement('div');
-                div.className = 'photo-box';
-                div.innerHTML = `<img src="${e.target.result}" alt="Foto da obra">`;
-                container.appendChild(div);
-            };
-            reader.readAsDataURL(file);
-        });
+        // Parâmetros de otimização: 800px de largura máxima e 70% de qualidade JPEG
+        const MAX_WIDTH = 800;
+        const JPEG_QUALITY = 0.7;
+
+        for (const file of Array.from(files)) {
+            // Redimensiona e comprime a imagem
+            const compressedDataUrl = await resizeAndCompressImage(file, MAX_WIDTH, JPEG_QUALITY);
+
+            const div = document.createElement('div');
+            div.className = 'photo-box';
+            div.innerHTML = `<img src="${compressedDataUrl}" alt="Foto da obra">`;
+            container.appendChild(div);
+        }
     }
 
     // Gerenciamento de assinaturas
@@ -571,7 +850,7 @@
     }
 
     function limparTudo() {
-        if(confirm("⚠️ Deseja realmente limpar todos os dados? Esta ação não pode ser desfeita.")) {
+        if(confirm("⚠️ Deseja realmente limpar todos os dados do formulário? (As obras cadastradas serão mantidas)")) {
             window.location.reload();
         }
     }
@@ -579,4 +858,3 @@
 
 </body>
 </html>
-
