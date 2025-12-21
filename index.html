@@ -4,484 +4,189 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RDO Profissional - ForAll Engenharia</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
-    <style>
-        :root { 
-            --primary: #1d3557; 
-            --secondary: #457b9d; 
-        }
-        
-        /* ========== ESTILOS PARA TELA ========== */
-        * { 
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
-        body { 
-            font-family: Arial, sans-serif; 
-            background: #f4f4f4; 
-            margin: 0; 
-            padding: 20px 0;
-        }
-        
-        /* Container Principal */
-        #pdf-content { 
-            background: white; 
-            width: 210mm; 
-            margin: 0 auto; 
-            padding: 15mm; 
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
+    <script src="obras.js"></script>
 
-        /* Cabeçalho */
+    <style>
+        :root { --primary: #1d3557; --secondary: #457b9d; --accent: #e63946; }
+        
+        /* ========== ESTILOS GERAIS ========== */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px 0; }
+        
+        /* Layout Principal */
+        #pdf-content { background: white; width: 210mm; margin: 0 auto; padding: 15mm; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+
+        /* CABEÇALHO (CORRIGIDO PARA GRID) */
         .header { 
-            display: flex; 
-            align-items: center; 
+            display: grid; 
+            /* Define 3 colunas: Logo (auto), Texto (o que sobrar), Título (auto) */
+            grid-template-columns: auto 1fr auto; 
+            align-items: center; /* Alinha tudo verticalmente pelo centro */
+            gap: 20px; /* Espaço entre os itens */
             border-bottom: 2px solid var(--primary); 
-            padding-bottom: 10px; 
-            margin-bottom: 20px;
-            /* Garantir que o texto da empresa fique ao lado do logo por padrão (desktop/print) */
-            flex-direction: row;
-            /* Força o alinhamento vertical centralizado */
-            align-items: center;
+            padding-bottom: 15px; 
+            margin-bottom: 20px; 
         }
         
-        .logo { 
-            width: 140px; 
-            height: auto;
-            margin-right: 20px;
-        }
+        .logo { width: 130px; height: auto; display: block; }
         
         .empresa-info { 
             font-size: 10px; 
-            flex-grow: 1; 
-            line-height: 1.6; 
+            line-height: 1.5; 
             color: #333; 
-            margin-right: 10px; /* Espaçamento entre info e título */
+            text-align: left;
         }
         
         .doc-title { 
             text-align: right; 
             color: var(--primary); 
             font-weight: bold; 
-            font-size: 16px;
+            font-size: 16px; 
+            white-space: nowrap; /* Impede que o título quebre linha */
         }
 
-        /* Seções */
-        .section-title { 
-            background: var(--primary); 
-            color: white; 
-            padding: 8px 12px; 
-            font-size: 12px; 
-            margin-top: 20px; 
-            margin-bottom: 10px;
-            text-transform: uppercase; 
-            font-weight: bold; 
-            border-radius: 3px;
-        }
+        /* Seções e Grid */
+        .section-title { background: var(--primary); color: white; padding: 8px 12px; font-size: 12px; margin-top: 20px; margin-bottom: 10px; text-transform: uppercase; font-weight: bold; border-radius: 3px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .full { grid-column: span 2; }
         
-        .grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 10px; 
-            margin-bottom: 10px;
-        }
-        
-        .full { 
-            grid-column: span 2; 
-        }
-        
-        label { 
-            display: block; 
-            font-size: 10px; 
-            font-weight: bold; 
-            color: var(--primary); 
-            margin-bottom: 3px; 
-        }
-        
-        .data-field { 
-            border: 1px solid #ddd; 
-            padding: 8px; 
-            font-size: 12px; 
-            min-height: 38px; 
-            background: #fafafa; 
-            border-radius: 3px;
-            line-height: 1.4;
-        }
-        
-        input, select, textarea { 
-            width: 100%; 
-            border: 1px solid #ccc; 
-            padding: 8px; 
-            font-size: 13px; 
-            border-radius: 3px; 
-            font-family: inherit; 
-        }
-        
-        textarea {
-            resize: vertical;
-        }
+        label { display: block; font-size: 10px; font-weight: bold; color: var(--primary); margin-bottom: 3px; }
+        .data-field { border: 1px solid #ddd; padding: 8px; font-size: 12px; min-height: 38px; background: #fafafa; border-radius: 3px; line-height: 1.4; }
+        input, select, textarea { width: 100%; border: 1px solid #ccc; padding: 8px; font-size: 13px; border-radius: 3px; font-family: inherit; }
+        textarea { resize: vertical; }
 
-        /* Registro Fotográfico */
-        #preview-container { 
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10mm; 
-            margin-top: 15px;
-            margin-bottom: 15px;
-        }
+        /* Fotos e Assinaturas */
+        #preview-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; margin-top: 15px; margin-bottom: 15px; }
+        .photo-box { width: 100%; height: 65mm; border: 1px solid #ddd; overflow: hidden; border-radius: 4px; background: #f9f9f9; display: flex; align-items: center; justify-content: center; }
+        .photo-box img { width: 100%; height: 100%; object-fit: cover; }
         
-        .photo-box { 
-            width: 100%; 
-            height: 65mm; 
-            border: 1px solid #ddd; 
-            overflow: hidden; 
-            border-radius: 4px;
-            background: #f9f9f9;
-        }
-        
-        .photo-box img { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover;
-            display: block;
-        }
+        .signature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30mm; margin-top: 30px; margin-bottom: 20px; text-align: center; }
+        .sig-wrapper { border-bottom: 2px solid #000; margin-bottom: 8px; height: 100px; }
+        canvas { width: 100%; height: 100px; touch-action: none; cursor: crosshair; }
+        .sig-label { font-size: 11px; color: #222; line-height: 1.4; }
 
-        /* Assinaturas */
-        .signature-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 30mm; 
-            margin-top: 30px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
+        /* ÁREA DE CONTROLE (Tela de Seleção e Cadastro) */
+        .no-print-area { max-width: 210mm; margin: 15px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-left: 5px solid var(--secondary); }
+        .controles-superiores { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; margin-bottom: 15px; }
         
-        .sig-wrapper { 
-            border-bottom: 2px solid #000; 
-            margin-bottom: 8px; 
-            height: 100px;
-        }
-        
-        canvas { 
-            width: 100%; 
-            height: 100px; 
-            touch-action: none;
-            cursor: crosshair;
-        }
-        
-        .sig-label { 
-            font-size: 11px; 
-            color: #222;
-            line-height: 1.4;
-        }
+        /* Modal de Cadastro */
+        #modalCadastro { display: none; background: #f0f8ff; padding: 15px; border: 1px dashed var(--secondary); margin-top: 15px; border-radius: 5px; }
+        #modalCadastro h4 { color: var(--primary); margin-bottom: 10px; }
 
-        /* Área de Controle */
-        .no-print-area { 
-            max-width: 210mm; 
-            margin: 15px auto; 
-            background: #fff; 
-            padding: 20px; 
-            border-radius: 8px; 
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
+        /* Botões Flutuantes */
+        .controls { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; z-index: 1000; background: white; padding: 15px 25px; border-radius: 50px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        button { padding: 12px 25px; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.3s; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
         
-        .controls { 
-            position: fixed; 
-            bottom: 30px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            display: flex; 
-            gap: 15px; 
-            z-index: 1000;
-            background: white;
-            padding: 15px 25px;
-            border-radius: 50px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        }
-        
-        button { 
-            padding: 12px 25px; 
-            border: none; 
-            border-radius: 25px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-        
-        .btn-pdf { 
-            background: #27ae60; 
-            color: white; 
-        }
-        
-        .btn-clear { 
-            background: #e74c3c; 
-            color: white; 
-        }
-        
-        .btn-limpar-sig {
-            background: #95a5a6;
-            color: white;
-            font-size: 11px;
-            padding: 5px 10px;
-            margin-top: 5px;
-        }
+        .btn-pdf { background: #27ae60; color: white; }
+        .btn-clear { background: #e74c3c; color: white; }
+        .btn-new { background: var(--secondary); color: white; padding: 8px 15px; font-size: 12px; }
+        .btn-save-js { background: #e67e22; color: white; display: none; margin-top: 10px; width: 100%; }
+        .btn-limpar-sig { background: #95a5a6; color: white; font-size: 11px; padding: 5px 10px; margin-top: 5px; }
 
-        /* ========== ESTILOS PARA IMPRESSÃO ========== */
+        /* ========== IMPRESSÃO ========== */
         @media print {
-            @page {
-                size: A4;
-                margin: 12mm;
-            }
+            @page { size: A4; margin: 12mm; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            body { background: white; margin: 0; padding: 0; }
+            #pdf-content { width: 100%; margin: 0; padding: 0; box-shadow: none; }
+            .no-print, .no-print-area, .controls, .btn-limpar-sig { display: none !important; }
             
-            * {
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-                color-adjust: exact !important;
-            }
-            
-            body {
-                background: white;
-                margin: 0;
-                padding: 0;
-            }
-            
-            #pdf-content {
-                width: 100%;
-                margin: 0;
-                padding: 0;
-                box-shadow: none;
-            }
-            
-            /* Esconde elementos de controle */
-            .no-print,
-            .no-print-area,
-            .controls,
-            .btn-limpar-sig {
-                display: none !important;
-            }
-            
-            /* Força impressão de cores de fundo */
-            .section-title {
-                background: var(--primary) !important;
-                color: white !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            
-            /* Controle de quebras de página */
-            .header {
-                page-break-after: avoid;
-                break-after: avoid;
-                /* FORÇA ALINHAMENTO HORIZONTAL NA IMPRESSÃO */
-                display: flex !important;
-                flex-direction: row !important;
+            /* Força o Grid na Impressão para alinhar o cabeçalho */
+            .header { 
+                display: grid !important; 
+                grid-template-columns: auto 1fr auto !important; 
                 align-items: center !important;
+                gap: 20px !important;
+                border-bottom: 2px solid var(--primary) !important;
             }
             
-            .section-title {
-                page-break-after: avoid;
-                break-after: avoid;
-                page-break-before: auto;
-                break-before: auto;
-            }
-            
-            .grid {
-                page-break-inside: avoid;
-                break-inside: avoid;
-            }
-            
-            .photo-box {
-                page-break-inside: avoid;
-                break-inside: avoid;
-                page-break-after: auto;
-                break-after: auto;
-            }
-            
-            .signature-grid {
-                page-break-inside: avoid;
-                break-inside: avoid;
-                margin-top: 20mm;
-            }
-            
-            /* Garante que imagens sejam impressas */
-            img {
-                max-width: 100%;
-                page-break-inside: avoid;
-            }
-            
-            /* Ajusta canvas para impressão */
-            canvas {
-                max-width: 100%;
-            }
-            
-            /* FORÇA LAYOUT DE DESKTOP (2 COLUNAS) NA IMPRESSÃO */
-            .grid, #preview-container, .signature-grid {
-                grid-template-columns: 1fr 1fr !important;
-            }
-            .full {
-                grid-column: span 2 !important;
-            }
+            .section-title { background: var(--primary) !important; color: white !important; }
+            .grid, #preview-container, .signature-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; page-break-inside: avoid; }
+            .full { grid-column: span 2 !important; }
+            .section-title { page-break-after: avoid; }
+            .photo-box { page-break-inside: avoid; }
         }
 
-        /* ========== ESTILOS PARA RESPONSIVIDADE (CELULAR) ========== */
+        /* RESPONSIVO */
         @media (max-width: 768px) {
-            body {
-                padding: 10px 0;
-            }
-            #pdf-content, .no-print-area {
-                width: 95%;
-                max-width: 95%;
-                padding: 10px;
-            }
-            .grid {
-                grid-template-columns: 1fr; /* Coluna única no celular */
-            }
-            .full {
-                grid-column: span 1;
-            }
-            .header {
-                flex-direction: column;
-                align-items: flex-start;
-            }          .logo {
-                width: 100px;
-                margin-bottom: 10px;
-            }
-            .doc-title {
-                text-align: left;
-                font-size: 14px;
-            }
-            #preview-container {
-                grid-template-columns: 1fr; /* Coluna única para fotos no celular */
-                gap: 5mm;
-            }
-            .photo-box {
-                height: 50mm;
-            }
-            .signature-grid {
-                grid-template-columns: 1fr; /* Coluna única para assinaturas */
-                gap: 15mm;
-            }
-            .controls {
-                bottom: 10px;
-                padding: 10px 15px;
-                gap: 10px;
-            }
-            button {
-                padding: 10px 15px;
-                font-size: 12px;
-            }
+            body { padding: 10px 0; }
+            #pdf-content, .no-print-area { width: 95%; max-width: 95%; padding: 10px; }
+            .header { grid-template-columns: 1fr; text-align: center; justify-items: center; gap: 10px; }
+            .logo { width: 120px; }
+            .empresa-info, .doc-title { text-align: center; }
+            .grid, #preview-container, .signature-grid { grid-template-columns: 1fr; }
+            .full { grid-column: span 1; }
+            .controls { bottom: 10px; width: 90%; justify-content: center; }
+            .controles-superiores { flex-direction: column; align-items: stretch; }
         }
     </style>
 </head>
 <body>
 
-<!-- ÁREA DE CADASTRO (NÃO IMPRIME) -->
 <div class="no-print-area">
-    <h3 style="margin-bottom: 15px; color: var(--primary);">⚙️ Gestão de Obras (ForAll)</h3>
-    <div class="grid">
-        <input type="text" id="cadObra" placeholder="Apelido da Obra">
-        <input type="text" id="cadContrato" placeholder="Nº Contrato">
-        <input type="text" id="cadEmpresa" placeholder="Empresa Contratada">
-        <input type="text" id="cadObjeto" placeholder="Objeto Completo">
-        <input type="date" id="cadInicio" placeholder="Data Início">
-        <input type="date" id="cadTermino" placeholder="Previsão Término">
+    <div class="controles-superiores">
+        <div style="flex-grow: 1;">
+            <h3 style="margin-bottom: 5px; color: var(--primary);">⚙️ Seleção de Obra</h3>
+            <select id="seletorObra" onchange="carregarDadosObra(this.value)">
+                <option value="">-- Escolha uma obra cadastrada --</option>
+            </select>
+        </div>
+        <button class="btn-new" onclick="toggleCadastro()">➕ Nova Obra</button>
     </div>
-    <button style="background: var(--secondary); color: white; width: 100%; margin-top: 10px;" onclick="salvarNovaObra()">
-        ➕ Cadastrar Obra
-    </button>
 
-    <!-- NOVO: Área de Exclusão -->
-    <div class="full" style="margin-top: 15px;">
-        <label>Excluir Obra:</label>
-        <select id="seletorExcluir" onchange="document.getElementById('btnExcluirObra').setAttribute('data-id', this.value); document.getElementById('btnExcluirObra').disabled = !this.value">
-            <option value="">-- Escolha a obra para excluir --</option>
-        </select>
-        <button id="btnExcluirObra" style="background: #e74c3c; color: white; width: 100%; margin-top: 5px;" onclick="excluirObra(this.getAttribute('data-id'))" disabled>
-            🗑️ Excluir Obra Selecionada
-        </button>
+    <div id="modalCadastro">
+        <h4>Cadastrar Nova Obra</h4>
+        <div class="grid">
+            <div class="full"><input type="text" id="cadNome" placeholder="Nome Curto (ex: UBS Florabella)"></div>
+            <div class="full"><input type="text" id="cadEmpresa" placeholder="Empresa / Cliente"></div>
+            <div class="full"><input type="text" id="cadObjeto" placeholder="Objeto (Descrição do serviço)"></div>
+            <div><input type="text" id="cadContrato" placeholder="Nº Contrato"></div>
+            <div></div> <div><label>Início:</label><input type="date" id="cadInicio"></div>
+            <div><label>Término:</label><input type="date" id="cadTermino"></div>
+        </div>
+        <div style="text-align: right; margin-top: 10px;">
+            <button onclick="salvarNovaObra()" style="background: var(--primary); color: white;">💾 Salvar Obra</button>
+            <button onclick="toggleCadastro()" style="background: #999; color: white;">Cancelar</button>
+        </div>
     </div>
+
+    <button id="btnBaixarJS" class="btn-save-js" onclick="baixarArquivoJS()">
+        ⚠️ Você tem obras novas salvas no navegador!<br>
+        Clique aqui para baixar o arquivo "obras.js" atualizado e substitua o antigo na pasta.
+    </button>
 </div>
 
-<!-- CONTEÚDO DO PDF -->
 <div id="pdf-content">
-    <!-- CABEÇALHO -->
     <div class="header">
         <img src="https://forallengenharia.com.br/images/logo_original.svg" class="logo" alt="Logo ForAll Engenharia">
+        
         <div class="empresa-info">
             <strong>FORALL ENGENHARIA LTDA</strong><br>
             CNPJ 47.418.779/0001-23<br>
             Holambra e região - SP | (19) 99624-3591<br>
             contato@forallengenharia.com.br
         </div>
+        
         <div class="doc-title">DIÁRIO DE OBRA</div>
     </div>
 
-    <!-- DADOS DO CONTRATO -->
     <div class="section-title">Dados do Contrato</div>
     <div class="grid">
-        <div class="full no-print">
-            <label>Selecione a Obra:</label>
-            <select id="seletorObra" onchange="carregarDadosObra(this.value)">
-                <option value="">-- Escolha uma obra cadastrada --</option>
-            </select>
-        </div>
-        
-        <!-- NOVO: Número do Relatório -->
-        <div>
-            <label>Nº do Relatório (RDO):</label>
-            <input type="number" id="numRDO" min="1" value="1">
-        </div>
-        
-        
-        
-        
-        <div class="full">
-            <label>Objeto/Obra:</label>
-            <div id="outObjeto" class="data-field"></div>
-        </div>
-        
-        <div>
-            <label>Nº Contrato:</label>
-            <div id="outContrato" class="data-field"></div>
-        </div>
-        
-        <div>
-            <label>Empresa:</label>
-            <div id="outEmpresa" class="data-field"></div>
-        </div>
-        
-        <div>
-            <label>Data Início:</label>
-            <div id="outInicio" class="data-field"></div>
-        </div>
-        
-        <div>
-            <label>Previsão Término:</label>
-            <div id="outTermino" class="data-field"></div>
-        </div>
-        
-        <!-- NOVO: Dias Faltantes -->
-        <div>
-            <label>Dias Faltantes para Vencimento:</label>
-            <div id="diasFaltantes" class="data-field" style="font-weight: bold; color: #e74c3c;"></div>
-        </div>
+        <div><label>Nº do Relatório (RDO):</label><input type="number" id="numRDO" min="1" value="1"></div>
+        <div><label>Prazo / Vencimento:</label><div id="diasFaltantes" class="data-field" style="font-weight: bold;"></div></div>
+        <div class="full"><label>Objeto/Obra:</label><div id="outObjeto" class="data-field"></div></div>
+        <div><label>Nº Contrato:</label><div id="outContrato" class="data-field"></div></div>
+        <div><label>Empresa:</label><div id="outEmpresa" class="data-field"></div></div>
+        <div><label>Data Início:</label><div id="outInicio" class="data-field"></div></div>
+        <div><label>Previsão Término:</label><div id="outTermino" class="data-field"></div></div>
     </div>
 
-    <!-- RELATÓRIO DE VISITA -->
     <div class="section-title">Relatório de Visita</div>
     <div class="grid">
-        <div>
-            <label>Data:</label>
-            <input type="date" id="dataAtual">
-        </div>
+        <div><label>Data:</label><input type="date" id="dataAtual"></div>
         <div>
             <label>Clima:</label>
             <select id="clima">
@@ -491,224 +196,150 @@
                 <option>Chuvoso (Interrompido)</option>
             </select>
         </div>
-        <div>
-            <label>Efetivo (Funcionários):</label>
-            <input type="number" id="efetivo" min="0">
-        </div>
-        <div class="full">
-            <label>Atividades em Execução:</label>
-            <textarea id="atividades" rows="4" placeholder="Descreva as atividades realizadas no dia..."></textarea>
-        </div>
-        <div class="full">
-            <label>Observações:</label>
-            <textarea id="obs" rows="3" placeholder="Observações gerais, pendências, etc..."></textarea>
-        </div>
+        <div><label>Efetivo (Funcionários):</label><input type="number" id="efetivo" min="0"></div>
+        <div class="full"><label>Atividades em Execução:</label><textarea id="atividades" rows="4"></textarea></div>
+        <div class="full"><label>Observações:</label><textarea id="obs" rows="3"></textarea></div>
     </div>
 
-    <!-- REGISTRO FOTOGRÁFICO -->
     <div class="section-title">Registro Fotográfico</div>
     <div class="no-print" style="padding: 10px 0;">
         <input type="file" id="fotos" accept="image/*" multiple onchange="previewImages()">
-        <small style="color: #666; font-size: 11px;">Selecione uma ou mais imagens (máximo recomendado: 6 fotos)</small>
+        <small style="color: #666; font-size: 11px;">Recomendado: Máximo 6 fotos.</small>
     </div>
     <div id="preview-container"></div>
 
-    <!-- ASSINATURAS -->
     <div class="signature-grid">
         <div>
-            <div class="sig-wrapper">
-                <canvas id="sig-proponente"></canvas>
-            </div>
+            <div class="sig-wrapper"><canvas id="sig-proponente"></canvas></div>
             <button class="btn-limpar-sig no-print" onclick="limparAssinatura('proponente')">🗑️ Limpar</button>
             <div class="sig-label">
                 <span id="outProponenteLabel">Entreposto</span>
-                <input type="text" id="entreposto" placeholder="Entreposto" class="no-print" oninput="document.getElementById('outProponenteLabel').innerText = this.value || 'Entreposto'">
+                <input type="text" id="entreposto" placeholder="Nome do Responsável" class="no-print" oninput="document.getElementById('outProponenteLabel').innerText = this.value || 'Entreposto'">
             </div>
         </div>
         <div>
-            <div class="sig-wrapper">
-                <canvas id="sig-germano"></canvas>
-            </div>
+            <div class="sig-wrapper"><canvas id="sig-germano"></canvas></div>
             <button class="btn-limpar-sig no-print" onclick="limparAssinatura('germano')">🗑️ Limpar</button>
-            <div class="sig-label">
-                <strong>Germano Jorge Francisco</strong><br>
-                Eng. Civil | CREA-SP 506.968.487-8
-            </div>
+            <div class="sig-label"><strong>Germano Jorge Francisco</strong><br>Eng. Civil | CREA-SP 506.968.487-8</div>
         </div>
     </div>
-    
-    <!-- NOVO: Data da Visita no Final -->
-    <div style="text-align: right; margin-top: 20px; font-size: 10px; color: #555;">
-        Data da Visita Técnica: <span id="dataVisitaFinal"></span>
-    </div>
+    <div style="text-align: right; margin-top: 20px; font-size: 10px; color: #555;">Data da Visita Técnica: <span id="dataVisitaFinal"></span></div>
 </div>
 
-<!-- CONTROLES FLUTUANTES -->
 <div class="controls">
-    <button class="btn-clear" onclick="limparTudo()">🗑️ Limpar Tudo</button>
+    <button class="btn-clear" onclick="limparTudo()">🗑️ Limpar</button>
     <button class="btn-pdf" onclick="imprimirPDF()">📄 IMPRIMIR PDF</button>
 </div>
 
 <script>
-    const LOCAL_STORAGE_KEY = 'rdo_obras';
-    let obras = [];
     let padProp, padGerm;
+    let listaObras = []; 
 
-    // Funções de persistência de dados
-    function carregarObras() {
-        const obrasJson = localStorage.getItem(LOCAL_STORAGE_KEY);
-        return obrasJson ? JSON.parse(obrasJson) : [];
-    }
-
-    function salvarObras() {
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(obras));
-    }
-
-    // Inicialização
     window.onload = () => {
-        obras = carregarObras(); // Carrega dados do Local Storage
+        carregarListaUnificada();
         
-        // Define data atual
         document.getElementById('dataAtual').valueAsDate = new Date();
         document.getElementById('dataVisitaFinal').innerText = formatarData(document.getElementById('dataAtual').value);
+        
+        padProp = new SignaturePad(document.getElementById('sig-proponente'));
+        padGerm = new SignaturePad(document.getElementById('sig-germano'));
 
-        // Inicializa signature pads
-        padProp = new SignaturePad(document.getElementById('sig-proponente'), {
-            backgroundColor: 'rgb(255, 255, 255)',
-            penColor: 'rgb(0, 0, 0)'
-        });
-        
-        padGerm = new SignaturePad(document.getElementById('sig-germano'), {
-            backgroundColor: 'rgb(255, 255, 255)',
-            penColor: 'rgb(0, 0, 0)'
-        });
-        
-        atualizarSeletor();
-        
-        // Listener para atualizar a data final
         document.getElementById('dataAtual').addEventListener('change', function() {
             document.getElementById('dataVisitaFinal').innerText = formatarData(this.value);
         });
     };
 
-    // Gerenciamento de obras
+    function carregarListaUnificada() {
+        const obrasArquivo = (typeof BANCO_DE_OBRAS !== 'undefined') ? BANCO_DE_OBRAS : [];
+        const obrasLocal = JSON.parse(localStorage.getItem('minhasObrasExtras')) || [];
+        listaObras = [...obrasArquivo, ...obrasLocal];
+        
+        const select = document.getElementById('seletorObra');
+        select.innerHTML = '<option value="">-- Escolha uma obra cadastrada --</option>';
+        listaObras.forEach(obra => {
+            const opt = document.createElement('option');
+            opt.value = obra.id;
+            opt.innerText = obra.nome;
+            select.appendChild(opt);
+        });
+
+        if (obrasLocal.length > 0) {
+            document.getElementById('btnBaixarJS').style.display = 'block';
+        }
+    }
+
+    function toggleCadastro() {
+        const modal = document.getElementById('modalCadastro');
+        modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
+    }
+
     function salvarNovaObra() {
-        const nova = {
+        const nome = document.getElementById('cadNome').value;
+        const empresa = document.getElementById('cadEmpresa').value;
+        
+        if (!nome || !empresa) { alert("Preencha pelo menos o Nome e a Empresa."); return; }
+
+        const novaObra = {
             id: Date.now(),
-            nome: document.getElementById('cadObra').value.trim(),
-            contrato: document.getElementById('cadContrato').value.trim(),
-            empresa: document.getElementById('cadEmpresa').value.trim(),
-            objeto: document.getElementById('cadObjeto').value.trim(),
+            nome: nome,
+            empresa: empresa,
+            objeto: document.getElementById('cadObjeto').value,
+            contrato: document.getElementById('cadContrato').value,
             inicio: document.getElementById('cadInicio').value,
             termino: document.getElementById('cadTermino').value
         };
-        
-        if(!nova.nome || !nova.termino) {
-            alert("⚠️ Insira o nome da obra e a previsão de término.");
-            return;
-        }
-        
-        obras.push(nova);
-        salvarObras(); // Salva no Local Storage
-        atualizarSeletor();
-        
-        // Limpa campos
-        document.getElementById('cadObra').value = '';
-        document.getElementById('cadContrato').value = '';
-        document.getElementById('cadEmpresa').value = '';
-        document.getElementById('cadObjeto').value = '';
-        document.getElementById('cadInicio').value = '';
-        document.getElementById('cadTermino').value = '';
-        
-        alert("✅ Obra cadastrada com sucesso!");
+
+        const obrasLocal = JSON.parse(localStorage.getItem('minhasObrasExtras')) || [];
+        obrasLocal.push(novaObra);
+        localStorage.setItem('minhasObrasExtras', JSON.stringify(obrasLocal));
+
+        alert("Obra Cadastrada! Ela ficará salva neste navegador.");
+        document.getElementById('cadNome').value = "";
+        toggleCadastro();
+        carregarListaUnificada();
     }
 
-    function excluirObra(id) {
-        if (!id || id === 'null') return;
+    function baixarArquivoJS() {
+        const conteudo = `/* BANCO DE DADOS ATUALIZADO EM ${new Date().toLocaleDateString()} */\n\nconst BANCO_DE_OBRAS = ${JSON.stringify(listaObras, null, 4)};`;
+        const blob = new Blob([conteudo], { type: "text/javascript" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "obras.js";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
         
-        const obraNome = obras.find(o => o.id == id)?.nome || 'esta obra';
-        
-        if (confirm(`Tem certeza que deseja excluir a obra "${obraNome}"?`)) {
-            obras = obras.filter(o => o.id != id);
-            salvarObras();
-            atualizarSeletor();
-            
-            // Limpa os campos de contrato se a obra excluída estava selecionada
-            if (document.getElementById('seletorObra').value == id) {
-                limparDadosContrato();
-            }
-            
-            alert("🗑️ Obra excluída com sucesso!");
-        }
-    }
-
-    function atualizarSeletor() {
-        const selectObra = document.getElementById('seletorObra');
-        const selectExcluir = document.getElementById('seletorExcluir');
-        
-        // Salva o ID da obra selecionada para manter a seleção após a atualização
-        const selectedId = selectObra.value;
-
-        selectObra.innerHTML = '<option value="">-- Escolha uma obra cadastrada --</option>';
-        selectExcluir.innerHTML = '<option value="">-- Escolha a obra para excluir --</option>';
-        
-        obras.forEach(o => {
-            const option = `<option value="${o.id}">${o.nome}</option>`;
-            selectObra.innerHTML += option;
-            selectExcluir.innerHTML += option;
-        });
-        
-        // Restaura a seleção
-        selectObra.value = selectedId;
-        
-        // Atualiza o botão de exclusão
-        document.getElementById('btnExcluirObra').disabled = !selectExcluir.value;
-    }
-
-    function limparDadosContrato() {
-        document.getElementById('outObjeto').innerText = '';
-        document.getElementById('outContrato').innerText = '';
-        document.getElementById('outEmpresa').innerText = '';
-        document.getElementById('outInicio').innerText = '';
-        document.getElementById('outTermino').innerText = '';
-        document.getElementById('diasFaltantes').innerText = '';
-    }
-
-    function calcularDiasFaltantes(dataTermino) {
-        if (!dataTermino) return '';
-        
-        const hoje = new Date();
-        const termino = new Date(dataTermino + 'T00:00:00'); // Garante que a hora seja 00:00:00
-        
-        const diffTime = termino.getTime() - hoje.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        if (diffDays < 0) {
-            return `Vencido há ${Math.abs(diffDays)} dias`;
-        } else if (diffDays === 0) {
-            return 'Vence Hoje!';
-        } else {
-            return `${diffDays} dias`;
+        if(confirm("Arquivo baixado! Deseja limpar a memória temporária do navegador? (Só faça isso após substituir o arquivo obras.js na pasta)")) {
+            localStorage.removeItem('minhasObrasExtras');
+            location.reload();
         }
     }
 
     function carregarDadosObra(id) {
-        if(!id) {
-            limparDadosContrato();
-            return;
-        }
-        
-        const obra = obras.find(o => o.id == id);
+        limparDadosContrato();
+        const obra = listaObras.find(o => o.id == id);
         if(obra) {
-            document.getElementById('outObjeto').innerText = obra.objeto;
-            document.getElementById('outContrato').innerText = obra.contrato;
-            document.getElementById('outEmpresa').innerText = obra.empresa;
+            document.getElementById('outObjeto').innerText = obra.objeto || '';
+            document.getElementById('outContrato').innerText = obra.contrato || '';
+            document.getElementById('outEmpresa').innerText = obra.empresa || '';
             document.getElementById('outInicio').innerText = formatarData(obra.inicio);
             document.getElementById('outTermino').innerText = formatarData(obra.termino);
-            
-            // NOVO: Calcula dias faltantes
             document.getElementById('diasFaltantes').innerText = calcularDiasFaltantes(obra.termino);
+            
+            const diasTxt = document.getElementById('diasFaltantes').innerText;
+            document.getElementById('diasFaltantes').style.color = diasTxt.includes("Vencido") ? '#e74c3c' : 'var(--primary)';
         }
+    }
+
+    function limparDadosContrato() {
+        ['outObjeto', 'outContrato', 'outEmpresa', 'outInicio', 'outTermino', 'diasFaltantes'].forEach(id => document.getElementById(id).innerText = '');
+    }
+
+    function calcularDiasFaltantes(dataTermino) {
+        if (!dataTermino) return '';
+        const diff = new Date(dataTermino + 'T00:00:00') - new Date();
+        const dias = Math.ceil(diff / (1000 * 60 * 60 * 24));
+        return dias < 0 ? `Vencido há ${Math.abs(dias)} dias` : (dias === 0 ? 'Vence Hoje!' : `${dias} dias`);
     }
 
     function formatarData(data) {
@@ -717,7 +348,6 @@
         return `${dia}/${mes}/${ano}`;
     }
 
-    // Função para redimensionar e comprimir a imagem
     function resizeAndCompressImage(file, maxWidth, quality) {
         return new Promise((resolve) => {
             const reader = new FileReader();
@@ -725,23 +355,12 @@
                 const img = new Image();
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > maxWidth) {
-                        height = height * (maxWidth / width);
-                        width = maxWidth;
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-
+                    let w = img.width, h = img.height;
+                    if (w > maxWidth) { h *= maxWidth / w; w = maxWidth; }
+                    canvas.width = w; canvas.height = h;
                     const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    // Converte para JPEG com qualidade reduzida (ex: 0.7)
-                    const dataUrl = canvas.toDataURL('image/jpeg', quality);
-                    resolve(dataUrl);
+                    ctx.drawImage(img, 0, 0, w, h);
+                    resolve(canvas.toDataURL('image/jpeg', quality));
                 };
                 img.src = e.target.result;
             };
@@ -749,61 +368,26 @@
         });
     }
 
-    // Gerenciamento de fotos
     async function previewImages() {
         const container = document.getElementById('preview-container');
-        const files = document.getElementById('fotos').files;
-        
         container.innerHTML = '';
-        
-        if(files.length > 6) {
-            alert("⚠️ Recomendamos no máximo 6 fotos para melhor formatação no PDF");
-        }
-        
-        // Parâmetros de otimização: 800px de largura máxima e 70% de qualidade JPEG
-        const MAX_WIDTH = 800;
-        const JPEG_QUALITY = 0.7;
-
+        const files = document.getElementById('fotos').files;
+        if(files.length > 6) alert("⚠️ Recomendamos no máximo 6 fotos.");
         for (const file of Array.from(files)) {
-            // Redimensiona e comprime a imagem
-            const compressedDataUrl = await resizeAndCompressImage(file, MAX_WIDTH, JPEG_QUALITY);
-
+            const url = await resizeAndCompressImage(file, 800, 0.7);
             const div = document.createElement('div');
             div.className = 'photo-box';
-            div.innerHTML = `<img src="${compressedDataUrl}" alt="Foto da obra">`;
+            div.innerHTML = `<img src="${url}">`;
             container.appendChild(div);
         }
     }
 
-    // Gerenciamento de assinaturas
-    function limparAssinatura(tipo) {
-        if(tipo === 'proponente') {
-            padProp.clear();
-        } else {
-            padGerm.clear();
-        }
-    }
-
-    // Função de impressão
+    function limparAssinatura(tipo) { tipo === 'proponente' ? padProp.clear() : padGerm.clear(); }
     function imprimirPDF() {
-        // Validações básicas
-        if(!document.getElementById('outObjeto').innerText) {
-            alert("⚠️ Selecione uma obra antes de gerar o PDF");
-            return;
-        }
-        
-        // Abre diálogo de impressão do navegador
+        if(!document.getElementById('outObjeto').innerText) { alert("⚠️ Selecione uma obra."); return; }
         window.print();
     }
-
-    function limparTudo() {
-        if(confirm("⚠️ Deseja realmente limpar todos os dados do formulário? (As obras cadastradas serão mantidas)")) {
-            window.location.reload();
-        }
-    }
+    function limparTudo() { if(confirm("Limpar formulário?")) window.location.reload(); }
 </script>
-
 </body>
 </html>
-
-
