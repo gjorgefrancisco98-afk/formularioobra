@@ -550,69 +550,23 @@
 </div>
 
 <script>
-    // Endpoint de MockAPI para demonstração. NÃO USE PARA DADOS REAIS!
-    const API_URL = 'https://65874251468e323fcbb92399.mockapi.io/rdo/obras';
+    const LOCAL_STORAGE_KEY = 'rdo_obras';
     let obras = [];
     let padProp, padGerm;
 
-    // Funções de persistência de dados (API - MockAPI.io)
-    
-    // Carrega dados (GET)
-    async function carregarObras() {
-        try {
-            const response = await fetch(API_URL);
-            if (!response.ok) throw new Error('Erro ao carregar obras da API.');
-            obras = await response.json();
-            
-            // O MockAPI usa 'id' como string, mas mantemos a compatibilidade
-            obras = obras.map(obra => ({
-                ...obra,
-                id: obra.id || Date.now() + Math.random()
-            }));
-            atualizarSeletor();
-        } catch (error) {
-            console.error("Erro ao carregar obras:", error);
-            alert("⚠️ Erro ao carregar obras do servidor. Verifique a conexão e a API.");
-        }
+    // Funções de persistência de dados
+    function carregarObras() {
+        const obrasJson = localStorage.getItem(LOCAL_STORAGE_KEY);
+        return obrasJson ? JSON.parse(obrasJson) : [];
     }
 
-    // Salva nova obra (POST)
-    async function salvarObraNaAPI(obra) {
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(obra)
-            });
-            if (!response.ok) throw new Error('Erro ao salvar obra.');
-            return true; 
-        } catch (error) {
-            console.error("Erro ao salvar obra:", error);
-            alert("⚠️ Erro ao salvar obra no servidor.");
-            return false;
-        }
-    }
-
-    // Exclui obra (DELETE)
-    async function excluirObraNaAPI(id) {
-        try {
-            const response = await fetch(`${API_URL}/${id}`, {
-                method: 'DELETE',
-            });
-            if (!response.ok) throw new Error('Erro ao excluir obra.');
-            return true; 
-        } catch (error) {
-            console.error("Erro ao excluir obra:", error);
-            alert("⚠️ Erro ao excluir obra no servidor.");
-            return false;
-        }
+    function salvarObras() {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(obras));
     }
 
     // Inicialização
-    window.onload = async () => {
-        await carregarObras(); // Carrega dados da API
+    window.onload = () => {
+        obras = carregarObras(); // Carrega dados do Local Storage
         
         // Define data atual
         document.getElementById('dataAtual').valueAsDate = new Date();
@@ -654,14 +608,9 @@
             return;
         }
         
-        const sucesso = await salvarObraNaAPI(nova);
-        if (sucesso) {
-            obras.push(nova);
-            atualizarSeletor();
-            alert("✅ Obra cadastrada com sucesso!");
-        } else {
-            return; // Sai se falhar
-        }
+        obras.push(nova);
+        salvarObras(); // Salva no Local Storage
+        atualizarSeletor();
         
         // Limpa campos
         document.getElementById('cadObra').value = '';
@@ -670,27 +619,26 @@
         document.getElementById('cadObjeto').value = '';
         document.getElementById('cadInicio').value = '';
         document.getElementById('cadTermino').value = '';
+        
+        alert("✅ Obra cadastrada com sucesso!");
     }
 
-    async function excluirObra(id) {
+    function excluirObra(id) {
         if (!id || id === 'null') return;
         
         const obraNome = obras.find(o => o.id == id)?.nome || 'esta obra';
         
         if (confirm(`Tem certeza que deseja excluir a obra "${obraNome}"?`)) {
-            const sucesso = await excluirObraNaAPI(id);
+            obras = obras.filter(o => o.id != id);
+            salvarObras();
+            atualizarSeletor();
             
-            if (sucesso) {
-                obras = obras.filter(o => o.id != id);
-                atualizarSeletor();
-                
-                // Limpa os campos de contrato se a obra excluída estava selecionada
-                if (document.getElementById('seletorObra').value == id) {
-                    limparDadosContrato();
-                }
-                
-                alert("🗑️ Obra excluída com sucesso!");
+            // Limpa os campos de contrato se a obra excluída estava selecionada
+            if (document.getElementById('seletorObra').value == id) {
+                limparDadosContrato();
             }
+            
+            alert("🗑️ Obra excluída com sucesso!");
         }
     }
 
