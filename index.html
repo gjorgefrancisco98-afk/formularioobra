@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>RDO Profissional - ForAll Engenharia</title>
     
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
@@ -11,116 +11,150 @@
     <style>
         :root { --primary: #1d3557; --secondary: #457b9d; --accent: #e63946; }
         
-        /* ========== ESTILOS GERAIS ========== */
+        /* ========== ESTILOS BASE (DESKTOP) ========== */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px 0; }
+        body { font-family: Arial, sans-serif; background: #e9ecef; margin: 0; padding: 20px 0; }
         
-        /* Layout Principal */
-        #pdf-content { background: white; width: 210mm; margin: 0 auto; padding: 15mm; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        /* O "Papel" na tela do computador */
+        #pdf-content { 
+            background: white; 
+            width: 210mm; 
+            margin: 0 auto; 
+            padding: 15mm; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+        }
 
-        /* CABEÇALHO (CORRIGIDO PARA GRID) */
+        /* CABEÇALHO PADRÃO (Grid Horizontal) */
         .header { 
             display: grid; 
-            /* Define 3 colunas: Logo (auto), Texto (o que sobrar), Título (auto) */
             grid-template-columns: auto 1fr auto; 
-            align-items: center; /* Alinha tudo verticalmente pelo centro */
-            gap: 20px; /* Espaço entre os itens */
+            align-items: center; 
+            gap: 20px; 
             border-bottom: 2px solid var(--primary); 
             padding-bottom: 15px; 
             margin-bottom: 20px; 
         }
         
         .logo { width: 130px; height: auto; display: block; }
-        
-        .empresa-info { 
-            font-size: 10px; 
-            line-height: 1.5; 
-            color: #333; 
-            text-align: left;
-        }
-        
-        .doc-title { 
-            text-align: right; 
-            color: var(--primary); 
-            font-weight: bold; 
-            font-size: 16px; 
-            white-space: nowrap; /* Impede que o título quebre linha */
-        }
+        .empresa-info { font-size: 10px; line-height: 1.5; color: #333; text-align: left; }
+        .doc-title { text-align: right; color: var(--primary); font-weight: bold; font-size: 16px; white-space: nowrap; }
 
-        /* Seções e Grid */
+        /* Estrutura do Formulário */
         .section-title { background: var(--primary); color: white; padding: 8px 12px; font-size: 12px; margin-top: 20px; margin-bottom: 10px; text-transform: uppercase; font-weight: bold; border-radius: 3px; }
+        
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         .full { grid-column: span 2; }
         
         label { display: block; font-size: 10px; font-weight: bold; color: var(--primary); margin-bottom: 3px; }
-        .data-field { border: 1px solid #ddd; padding: 8px; font-size: 12px; min-height: 38px; background: #fafafa; border-radius: 3px; line-height: 1.4; }
+        
+        /* Campos de input padrão */
+        .data-field { border: 1px solid #ddd; padding: 8px; font-size: 12px; min-height: 38px; background: #fafafa; border-radius: 3px; line-height: 1.4; display: flex; align-items: center; }
         input, select, textarea { width: 100%; border: 1px solid #ccc; padding: 8px; font-size: 13px; border-radius: 3px; font-family: inherit; }
         textarea { resize: vertical; }
 
-        /* Fotos e Assinaturas */
+        /* Áreas visuais (Fotos e Assinatura) */
         #preview-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; margin-top: 15px; margin-bottom: 15px; }
         .photo-box { width: 100%; height: 65mm; border: 1px solid #ddd; overflow: hidden; border-radius: 4px; background: #f9f9f9; display: flex; align-items: center; justify-content: center; }
         .photo-box img { width: 100%; height: 100%; object-fit: cover; }
         
         .signature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30mm; margin-top: 30px; margin-bottom: 20px; text-align: center; }
-        .sig-wrapper { border-bottom: 2px solid #000; margin-bottom: 8px; height: 100px; }
+        .sig-wrapper { border-bottom: 2px solid #000; margin-bottom: 8px; height: 100px; background: #fff; }
         canvas { width: 100%; height: 100px; touch-action: none; cursor: crosshair; }
-        .sig-label { font-size: 11px; color: #222; line-height: 1.4; }
+        .sig-label { font-size: 11px; color: #222; }
 
-        /* ÁREA DE CONTROLE (Tela de Seleção e Cadastro) */
-        .no-print-area { max-width: 210mm; margin: 15px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-left: 5px solid var(--secondary); }
+        /* ========== ÁREA DE CONTROLES (Tela) ========== */
+        .no-print-area { max-width: 210mm; margin: 0 auto 20px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-left: 5px solid var(--secondary); }
         .controles-superiores { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; margin-bottom: 15px; }
         
-        /* Modal de Cadastro */
         #modalCadastro { display: none; background: #f0f8ff; padding: 15px; border: 1px dashed var(--secondary); margin-top: 15px; border-radius: 5px; }
-        #modalCadastro h4 { color: var(--primary); margin-bottom: 10px; }
-
-        /* Botões Flutuantes */
-        .controls { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; z-index: 1000; background: white; padding: 15px 25px; border-radius: 50px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        
+        .controls { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; z-index: 1000; background: white; padding: 10px 20px; border-radius: 50px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); width: max-content; }
         button { padding: 12px 25px; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.3s; }
-        button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
         
         .btn-pdf { background: #27ae60; color: white; }
         .btn-clear { background: #e74c3c; color: white; }
         .btn-new { background: var(--secondary); color: white; padding: 8px 15px; font-size: 12px; }
-        .btn-save-js { background: #e67e22; color: white; display: none; margin-top: 10px; width: 100%; }
-        .btn-limpar-sig { background: #95a5a6; color: white; font-size: 11px; padding: 5px 10px; margin-top: 5px; }
+        .btn-save-js { background: #e67e22; color: white; display: none; margin-top: 10px; width: 100%; padding: 10px; }
+        .btn-limpar-sig { background: #95a5a6; color: white; font-size: 11px; padding: 4px 8px; margin-top: 5px; border-radius: 4px; }
 
-        /* ========== IMPRESSÃO ========== */
-        @media print {
-            @page { size: A4; margin: 12mm; }
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            body { background: white; margin: 0; padding: 0; }
-            #pdf-content { width: 100%; margin: 0; padding: 0; box-shadow: none; }
-            .no-print, .no-print-area, .controls, .btn-limpar-sig { display: none !important; }
+        /* ========== MODO CELULAR (OTIMIZAÇÃO DE TELA) ========== */
+        /* Isso altera APENAS a visualização na tela, não a impressão */
+        @media screen and (max-width: 768px) {
+            body { padding: 10px; background: #f4f4f4; }
             
-            /* Força o Grid na Impressão para alinhar o cabeçalho */
+            /* Remove a largura fixa de papel e deixa fluido */
+            #pdf-content { width: 100%; padding: 15px; margin-bottom: 80px; /* Espaço p/ botões */ border-radius: 8px; }
+            .no-print-area { width: 100%; }
+
+            /* Cabeçalho Vertical para celular */
+            .header { display: flex; flex-direction: column; text-align: center; gap: 10px; }
+            .logo { margin: 0 auto; width: 100px; }
+            .empresa-info { text-align: center; font-size: 11px; }
+            .doc-title { text-align: center; font-size: 18px; margin-top: 5px; }
+
+            /* Transforma tudo em 1 coluna */
+            .grid, .signature-grid, #preview-container { grid-template-columns: 1fr; gap: 15px; }
+            .full { grid-column: span 1; }
+
+            /* Aumenta campos para toque */
+            input, select, textarea, .data-field { 
+                font-size: 16px; /* Evita zoom no iOS */
+                padding: 12px; 
+                min-height: 45px;
+            }
+            label { font-size: 12px; margin-bottom: 5px; }
+            
+            /* Ajuste dos controles */
+            .controls { width: 90%; justify-content: space-between; bottom: 15px; padding: 15px; }
+            .btn-pdf, .btn-clear { padding: 12px 10px; font-size: 13px; flex-grow: 1; }
+            .controles-superiores { flex-direction: column; align-items: stretch; }
+            .btn-new { width: 100%; margin-top: 10px; padding: 12px; }
+        }
+
+        /* ========== MODO IMPRESSÃO (O IMPORTANTE) ========== */
+        /* Aqui forçamos o layout a voltar ao padrão A4 rígido, ignorando o modo celular */
+        @media print {
+            @page { size: A4; margin: 10mm; }
+            body { background: white; margin: 0; padding: 0; }
+            
+            /* Restaura container A4 */
+            #pdf-content { 
+                width: 100%; 
+                margin: 0; 
+                padding: 0; 
+                box-shadow: none; 
+                border-radius: 0;
+            }
+
+            /* Restaura Grid do Cabeçalho para ficar alinhado */
             .header { 
                 display: grid !important; 
                 grid-template-columns: auto 1fr auto !important; 
                 align-items: center !important;
                 gap: 20px !important;
+                text-align: left !important;
                 border-bottom: 2px solid var(--primary) !important;
             }
-            
-            .section-title { background: var(--primary) !important; color: white !important; }
-            .grid, #preview-container, .signature-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; page-break-inside: avoid; }
-            .full { grid-column: span 2 !important; }
-            .section-title { page-break-after: avoid; }
-            .photo-box { page-break-inside: avoid; }
-        }
+            .logo { margin: 0 !important; width: 130px !important; }
+            .empresa-info { text-align: left !important; font-size: 10px !important; }
+            .doc-title { text-align: right !important; font-size: 16px !important; }
 
-        /* RESPONSIVO */
-        @media (max-width: 768px) {
-            body { padding: 10px 0; }
-            #pdf-content, .no-print-area { width: 95%; max-width: 95%; padding: 10px; }
-            .header { grid-template-columns: 1fr; text-align: center; justify-items: center; gap: 10px; }
-            .logo { width: 120px; }
-            .empresa-info, .doc-title { text-align: center; }
-            .grid, #preview-container, .signature-grid { grid-template-columns: 1fr; }
-            .full { grid-column: span 1; }
-            .controls { bottom: 10px; width: 90%; justify-content: center; }
-            .controles-superiores { flex-direction: column; align-items: stretch; }
+            /* Restaura colunas duplas */
+            .grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+            .full { grid-column: span 2 !important; }
+            .signature-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 30mm !important; }
+            #preview-container { display: grid !important; grid-template-columns: 1fr 1fr !important; }
+            
+            /* Esconde elementos de interface */
+            .no-print, .no-print-area, .controls, .btn-limpar-sig { display: none !important; }
+            
+            /* Cores e quebras */
+            .section-title { background: var(--primary) !important; color: white !important; -webkit-print-color-adjust: exact; }
+            .section-title, .photo-box, .sig-wrapper { page-break-inside: avoid; }
+            
+            /* Fontes pequenas de volta */
+            input, select, textarea, .data-field { font-size: 12px !important; padding: 8px !important; min-height: 0 !important; border: 1px solid #ccc !important; }
+            label { font-size: 10px !important; }
         }
     </style>
 </head>
@@ -149,13 +183,12 @@
         </div>
         <div style="text-align: right; margin-top: 10px;">
             <button onclick="salvarNovaObra()" style="background: var(--primary); color: white;">💾 Salvar Obra</button>
-            <button onclick="toggleCadastro()" style="background: #999; color: white;">Cancelar</button>
+            <button onclick="toggleCadastro()" style="background: #999; color: white; padding: 12px 25px;">Cancelar</button>
         </div>
     </div>
 
     <button id="btnBaixarJS" class="btn-save-js" onclick="baixarArquivoJS()">
-        ⚠️ Você tem obras novas salvas no navegador!<br>
-        Clique aqui para baixar o arquivo "obras.js" atualizado e substitua o antigo na pasta.
+        ⚠️ Obras novas na memória! Baixar "obras.js" atualizado.
     </button>
 </div>
 
@@ -203,8 +236,8 @@
 
     <div class="section-title">Registro Fotográfico</div>
     <div class="no-print" style="padding: 10px 0;">
-        <input type="file" id="fotos" accept="image/*" multiple onchange="previewImages()">
-        <small style="color: #666; font-size: 11px;">Recomendado: Máximo 6 fotos.</small>
+        <input type="file" id="fotos" accept="image/*" multiple onchange="previewImages()" style="padding: 10px; background: #eee;">
+        <div style="color: #666; font-size: 11px; margin-top: 5px;">Recomendado: Máximo 6 fotos.</div>
     </div>
     <div id="preview-container"></div>
 
@@ -214,7 +247,7 @@
             <button class="btn-limpar-sig no-print" onclick="limparAssinatura('proponente')">🗑️ Limpar</button>
             <div class="sig-label">
                 <span id="outProponenteLabel">Entreposto</span>
-                <input type="text" id="entreposto" placeholder="Nome do Responsável" class="no-print" oninput="document.getElementById('outProponenteLabel').innerText = this.value || 'Entreposto'">
+                <input type="text" id="entreposto" placeholder="Nome do Responsável" class="no-print" style="margin-top: 5px;" oninput="document.getElementById('outProponenteLabel').innerText = this.value || 'Entreposto'">
             </div>
         </div>
         <div>
@@ -228,7 +261,7 @@
 
 <div class="controls">
     <button class="btn-clear" onclick="limparTudo()">🗑️ Limpar</button>
-    <button class="btn-pdf" onclick="imprimirPDF()">📄 IMPRIMIR PDF</button>
+    <button class="btn-pdf" onclick="imprimirPDF()">📄 GERAR PDF</button>
 </div>
 
 <script>
@@ -241,8 +274,21 @@
         document.getElementById('dataAtual').valueAsDate = new Date();
         document.getElementById('dataVisitaFinal').innerText = formatarData(document.getElementById('dataAtual').value);
         
-        padProp = new SignaturePad(document.getElementById('sig-proponente'));
-        padGerm = new SignaturePad(document.getElementById('sig-germano'));
+        // Ajuste para canvas responsivo
+        function resizeCanvas(canvas) {
+            const ratio =  Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+        }
+
+        const canvas1 = document.getElementById('sig-proponente');
+        const canvas2 = document.getElementById('sig-germano');
+        resizeCanvas(canvas1);
+        resizeCanvas(canvas2);
+        
+        padProp = new SignaturePad(canvas1);
+        padGerm = new SignaturePad(canvas2);
 
         document.getElementById('dataAtual').addEventListener('change', function() {
             document.getElementById('dataVisitaFinal').innerText = formatarData(this.value);
