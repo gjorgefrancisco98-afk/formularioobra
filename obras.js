@@ -19,40 +19,5 @@ const BANCO_DE_OBRAS = [
         "inicio": "2024-11-01",
         "termino": "2025-05-30"
     },
-    {
-        "id": 3,
-        "nome": "Residencial Jaguariúna",
-        "contrato": "Particular/2025",
-        "empresa": "Cliente Particular",
-        "objeto": "Gerenciamento de construção residencial unifamiliar",
-        "inicio": "2025-02-01",
-        "termino": "2025-12-20"
-    },
-    {
-        "id": 4,
-        "nome": "CNC Tech",
-        "contrato": "Particular/2025",
-        "empresa": "ANDRE EDUARDO BARBOZA DE LIMA",
-        "objeto": "Construção de galpão comercial",
-        "inicio": "2025-12-10",
-        "termino": "2026-09-10"
-    },
-    {
-        "id": 5,
-        "nome": "CASA GH",
-        "contrato": "Particular/2026",
-        "empresa": "Cliente Particular",
-        "objeto": "Gerenciamento de construção residencial unifamiliar",
-        "inicio": "2026-06-01",
-        "termino": "2026-12-20"
-    },
-    {
-        "id": 1766347537942,
-        "nome": "Maitê",
-        "empresa": "Mait^R Ferreira francisco",
-        "objeto": "casa",
-        "contrato": "102530",
-        "inicio": "2025-11-30",
-        "termino": "2026-01-10"
-    }
+   
 ];
